@@ -1,0 +1,42 @@
+.cursor-dot {
+    width: 8px;
+    height: 8px;
+    background-color: white;
+    position: fixed;
+    top: 0;
+    left: 0;
+    border-radius: 50%;
+    z-index: 9999;
+    pointer-events: none;
+    mix-blend-mode: difference;
+}
+
+.cursor-trailer {
+    width: 40px;
+    height: 40px;
+    border: 1px solid white;
+    position: fixed;
+    top: 0;
+    left: 0;
+    border-radius: 50%;
+    z-index: 9998;
+    pointer-events: none;
+    transition: width 0.2s, height 0.2s, background-color 0.2s;
+    mix-blend-mode: difference;
+    will-change: transform;
+}
+
+/* Efek saat hover di link atau button */
+body:hover .cursor-trailer.hover {
+    width: 60px;
+    height: 60px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-width: 0;
+}
+
+/* Sembunyikan cursor asli hanya jika device punya pointer halus (bukan touch) */
+@media (pointer: fine) {
+    body {
+        cursor: none;
+    }
+}
