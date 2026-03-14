@@ -129,7 +129,7 @@ See [INSTALL.md](INSTALL.md) for full setup instructions.
 **Quick start:**
 ```bash
 # Clone and install
-git clone https://github.com/MuhammadIsakiPrananda/portfolio-neverland-studio-v2.git
+git clone https://github.com/MuhammadIsakiPrananda1/portfolio-neverland-studio-v2.git
 cd portofolio-neverland-studio
 npm install
 cd backend && composer install

@@ -264,7 +264,7 @@ The fastest way to get the entire stack (frontend, backend, database, phpMyAdmin
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/MuhammadIsakiPrananda/portfolio-neverland-studio-v2.git
+git clone https://github.com/MuhammadIsakiPrananda1/portfolio-neverland-studio-v2.git
 cd portfolio-neverland-studio
 
 # 2. Create the shared Docker network
@@ -300,7 +300,7 @@ Use this if you prefer running services directly on your machine.
 ### Step 1 — Clone
 
 ```bash
-git clone https://github.com/MuhammadIsakiPrananda/portfolio-neverland-studio-v2.git
+git clone https://github.com/MuhammadIsakiPrananda1/portfolio-neverland-studio-v2.git
 cd portfolio-neverland-studio
 ```
 
@@ -832,8 +832,8 @@ This project is licensed under the **MIT License** — see the [LICENSE](LICENSE
 |---|---|
 | **Email** | Arlianto032@gmail.com |
 | **Website** | [portfolio.neverlandstudio.my.id](https://portfolio.neverlandstudio.my.id) |
-| **GitHub** | [@MuhammadIsakiPrananda](https://github.com/MuhammadIsakiPrananda) |
-| **Issues** | [GitHub Issues](https://github.com/MuhammadIsakiPrananda/portfolio-neverland-studio-v2/issues) |
+| **GitHub** | [@MuhammadIsakiPrananda1](https://github.com/MuhammadIsakiPrananda1) |
+| **Issues** | [GitHub Issues](https://github.com/MuhammadIsakiPrananda1/portfolio-neverland-studio-v2/issues) |
 
 ---
 

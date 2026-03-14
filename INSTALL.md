@@ -12,7 +12,7 @@
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/MuhammadIsakiPrananda/portfolio-neverland-studio-v2.git
+git clone https://github.com/MuhammadIsakiPrananda1/portofolio-neverland-studio
 cd portofolio-neverland-studio
 
 # 2. Create Docker network
@@ -99,7 +99,7 @@ sudo mv composer.phar /usr/local/bin/composer
 ### Step 1 — Clone the Repository
 
 ```bash
-git clone https://github.com/MuhammadIsakiPrananda/portfolio-neverland-studio-v2.git
+git clone https://github.com/MuhammadIsakiPrananda1/portfolio-neverland-studio-v2.git
 cd portofolio-neverland-studio
 ```
 
@@ -306,5 +306,5 @@ After a successful installation:
 
 <div align="center">
 <br/>
-Need help? Open a <a href="https://github.com/MuhammadIsakiPrananda/portfolio-neverland-studio-v2/issues">GitHub issue</a> or email: <b>Arlianto032@gmail.com</b>
+Need help? Open a <a href="https://github.com/MuhammadIsakiPrananda1/portfolio-neverland-studio-v2/issues">GitHub issue</a> or email: <b>Arlianto032@gmail.com</b>
 </div>

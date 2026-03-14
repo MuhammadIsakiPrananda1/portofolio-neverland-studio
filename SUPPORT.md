@@ -15,7 +15,7 @@
 - **Response time:** 24–48 business hours
 
 ### GitHub Issues
-- Open an issue at [GitHub Repository](https://github.com/MuhammadIsakiPrananda/portfolio-neverland-studio-v2/issues)
+- Open an issue at [GitHub Repository](https://github.com/MuhammadIsakiPrananda1/portfolio-neverland-studio-v2/issues)
 - Use the correct template: **Bug Report** or **Feature Request**
 
 ### Documentation
@@ -38,7 +38,7 @@
 The fastest way is with Docker:
 
 ```bash
-git clone https://github.com/MuhammadIsakiPrananda/portfolio-neverland-studio-v2.git
+git clone https://github.com/MuhammadIsakiPrananda1/portfolio-neverland-studio-v2.git
 cd portfolio-neverland-studio
 docker network create app-network
 cp .env.example .env
@@ -67,7 +67,7 @@ See [INSTALL.md](INSTALL.md) for the full guide.
 <details>
 <summary><strong>How do I report a bug?</strong></summary>
 
-1. Check [existing issues](https://github.com/MuhammadIsakiPrananda/portfolio-neverland-studio-v2/issues) first to avoid duplicates.
+1. Check [existing issues](https://github.com/MuhammadIsakiPrananda1/portfolio-neverland-studio-v2/issues) first to avoid duplicates.
 2. Open a new issue with:
    - **Steps to reproduce** — exact sequence to trigger the bug
    - **Expected behavior** — what should have happened
@@ -194,7 +194,7 @@ The config uses **AES-256-GCM** encryption, **SHA-512** HMAC auth, and **TLS 1.3
 | Resource | Link |
 |---|---|
 | Live Website | [portfolio.neverlandstudio.my.id](https://portfolio.neverlandstudio.my.id) |
-| GitHub | [@MuhammadIsakiPrananda](https://github.com/MuhammadIsakiPrananda) |
+| GitHub | [@MuhammadIsakiPrananda1](https://github.com/MuhammadIsakiPrananda1) |
 | React Docs | [react.dev](https://react.dev) |
 | Laravel Docs | [laravel.com/docs](https://laravel.com/docs) |
 | TypeScript Docs | [typescriptlang.org/docs](https://www.typescriptlang.org/docs/) |
