@@ -8,39 +8,15 @@
 
 ---
 
-## ⚡ Quick Start (Docker — 5 Minutes)
-
-```bash
-# 1. Clone the repository
-git clone https://github.com/MuhammadIsakiPrananda1/portofolio-neverland-studio
-cd portofolio-neverland-studio
-
-# 2. Create Docker network
-docker network create app-network
-
-# 3. Copy environment file
-cp .env.example .env
-
-# 4. Start all services
-docker-compose up -d --build
-
-# 5. Done!
-# 🟢 Dev frontend:  http://localhost:5173
-# 🔵 Prod frontend: http://localhost:3000
-# 🔴 Backend API:   http://localhost:8001
-# 🟠 phpMyAdmin:    http://localhost:8080
-```
-
----
-
 ## 💻 System Preparation
 
 ### 🪟 Windows
 
-1. Install [Docker Desktop](https://www.docker.com/products/docker-desktop)
-2. Install [Git for Windows](https://git-scm.com)
-3. Install [Node.js LTS](https://nodejs.org)
-4. *(Recommended)* Install [VS Code](https://code.visualstudio.com)
+1. Install [Git for Windows](https://git-scm.com)
+2. Install [Node.js LTS](https://nodejs.org)
+3. Install [PHP 8.3+](https://windows.php.net/download/)
+4. Install [MySQL/MariaDB](https://mariadb.org/download/)
+5. *(Recommended)* Install [VS Code](https://code.visualstudio.com)
 
 ### 🍎 macOS
 
@@ -48,32 +24,27 @@ docker-compose up -d --build
 # Install Homebrew (if not already installed)
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
-# Install Docker Desktop
-brew install --cask docker
-
 # Install Git
 brew install git
 
 # Install Node.js
 brew install node
+
+# Install PHP and extensions
+brew install php@8.3
+brew install composer
+
+# Install MySQL/MariaDB
+brew install mysql
+# or
+brew install mariadb
 ```
 
 ### 🐧 Linux (Ubuntu / Debian)
 
-<details>
-<summary><b>Click to expand Linux Setup Steps</b></summary>
-
 ```bash
 # Update system packages
 sudo apt update && sudo apt upgrade -y
-
-# Install Docker
-sudo apt install -y docker.io
-sudo systemctl enable --now docker
-sudo usermod -aG docker $USER
-
-# Install Docker Compose (plugin)
-sudo apt install -y docker-compose-plugin
 
 # Install Git
 sudo apt install -y git
@@ -88,13 +59,16 @@ sudo apt install -y php php-cli php-mbstring php-xml php-curl php-pdo php-mysql
 # Install Composer
 curl -sS https://getcomposer.org/installer | php
 sudo mv composer.phar /usr/local/bin/composer
-```
 
-</details>
+# Install MySQL/MariaDB
+sudo apt install -y mysql-server
+# or
+sudo apt install -y mariadb-server
+```
 
 ---
 
-## 🛠️ Full Installation (Without Docker)
+## 🛠️ Installation Instructions
 
 ### Step 1 — Clone the Repository
 
@@ -210,7 +184,7 @@ npm run build
 # Preview the build locally
 npm run preview
 ```
-*Output is in the `dist/` directory, served by Nginx in Docker.*
+*Output is in the `dist/` directory.*
 
 ### 🐘 Backend
 
@@ -227,22 +201,141 @@ php artisan route:cache
 php artisan view:cache
 ```
 
-### 🐋 Docker Production Deployment
-
-```bash
-# Build and start production containers
-docker-compose up -d --build
-
-# Check all containers are running
-docker-compose ps
-
-# View logs
-docker-compose logs -f
-```
-
 ---
 
-## 🚑 Troubleshooting
+## 🚀 Deploy ke VPS / Server
+
+### Step 1 — Persiapan Server
+
+Pastikan server Ubuntu/Debian memiliki:
+- **Nginx** (`sudo apt install nginx`)
+- **PHP 8.2+ & PHP-FPM** (`sudo apt install php8.2-fpm php8.2-mbstring php8.2-xml php8.2-curl php8.2-mysql`)
+- **Composer** (`curl -sS https://getcomposer.org/installer | php`)
+- **Node.js 22+** (`curl -fsSL https://deb.nodesource.com/setup_22.x | sudo bash - && sudo apt install nodejs`)
+- **MariaDB / MySQL** (`sudo apt install mariadb-server`)
+
+### Step 2 — Clone & Build di Server
+
+```bash
+cd /var/www
+git clone https://github.com/MuhammadIsakiPrananda1/portfolio-neverland-studio-v2.git portfolio-neverland-studio
+cd portfolio-neverland-studio
+
+# Build frontend
+npm install
+npm run build
+
+# Setup backend
+cd backend
+composer install --no-dev --optimize-autoloader
+cp .env.example .env
+php artisan key:generate
+```
+
+### Step 3 — Konfigurasi Database
+
+```bash
+# Buat database
+mysql -u root -p -e "CREATE DATABASE neverland_portfolio CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+
+# Edit .env sesuai kredensial database
+nano backend/.env
+# Isi: DB_HOST, DB_DATABASE, DB_USERNAME, DB_PASSWORD, APP_URL, FRONTEND_URL
+
+# Jalankan migrasi
+php artisan migrate --seed
+php artisan optimize
+```
+
+### Step 4 — Permission Folder
+
+```bash
+chmod -R 775 storage bootstrap/cache
+chown -R www-data:www-data /var/www/portfolio-neverland-studio
+```
+
+### Step 5 — Konfigurasi Nginx
+
+```bash
+sudo nano /etc/nginx/sites-available/neverland-frontend
+```
+
+```nginx
+# Frontend
+server {
+    listen 80;
+    server_name neverlandstudio.com www.neverlandstudio.com;
+    root /var/www/portfolio-neverland-studio/dist;
+    index index.html;
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+}
+```
+
+```bash
+sudo nano /etc/nginx/sites-available/neverland-backend
+```
+
+```nginx
+# Backend API
+server {
+    listen 80;
+    server_name api.neverlandstudio.com;
+    root /var/www/portfolio-neverland-studio/backend/public;
+    index index.php;
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    location ~ \.php$ {
+        fastcgi_pass unix:/var/run/php/php8.2-fpm.sock;
+        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+        include fastcgi_params;
+    }
+}
+```
+
+```bash
+# Aktifkan konfigurasi
+sudo ln -s /etc/nginx/sites-available/neverland-frontend /etc/nginx/sites-enabled/
+sudo ln -s /etc/nginx/sites-available/neverland-backend /etc/nginx/sites-enabled/
+sudo nginx -t && sudo systemctl reload nginx
+```
+
+### Step 6 — WebSocket Server (Reverb) dengan Supervisor
+
+```bash
+sudo apt install supervisor
+sudo nano /etc/supervisor/conf.d/reverb.conf
+```
+
+```ini
+[program:reverb]
+process_name=%(program_name)s
+command=php /var/www/portfolio-neverland-studio/backend/artisan reverb:start --host=0.0.0.0 --port=8080
+autostart=true
+autorestart=true
+user=www-data
+redirect_stderr=true
+stdout_logfile=/var/log/supervisor/reverb.log
+```
+
+```bash
+sudo supervisorctl reread
+sudo supervisorctl update
+sudo supervisorctl start reverb
+```
+
+### Step 7 — SSL dengan Certbot (Opsional tapi Direkomendasikan)
+
+```bash
+sudo apt install certbot python3-certbot-nginx
+sudo certbot --nginx -d neverlandstudio.com -d www.neverlandstudio.com
+sudo certbot --nginx -d api.neverlandstudio.com
+```
 
 <details>
 <summary><b>View Common Errors & Solutions</b></summary>
@@ -277,13 +370,6 @@ cd backend
 composer clear-cache
 rm -rf vendor
 composer install --no-interaction
-```
-
-### Docker Build Issues
-```bash
-docker-compose down -v --rmi all
-docker-compose build --no-cache
-docker-compose up -d
 ```
 
 ### Real-Time Dashboard Not Updating

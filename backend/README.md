@@ -7,7 +7,7 @@
 [![Laravel](https://img.shields.io/badge/Laravel-11-FF2D20?style=for-the-badge&logo=laravel&logoColor=white)](https://laravel.com)
 [![PHP](https://img.shields.io/badge/PHP-8.2+-777BB4?style=for-the-badge&logo=php&logoColor=white)](https://www.php.net)
 [![MySQL](https://img.shields.io/badge/MariaDB-8.4-003545?style=for-the-badge&logo=mariadb&logoColor=white)](https://mariadb.org)
-[![Docker](https://img.shields.io/badge/Docker-Nginx-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com)
+[![Nginx](https://img.shields.io/badge/Nginx-Web%20Server-009639?style=for-the-badge&logo=nginx&logoColor=white)](https://nginx.org)
 [![License](https://img.shields.io/badge/License-MIT-22c55e?style=for-the-badge)](../LICENSE)
 
 > Part of the [Neverland Studio](../README.md) full-stack project. For frontend setup see the root [`README.md`](../README.md).
@@ -142,8 +142,7 @@ backend/
 │   └── reverb.php
 │
 ├── .env.example                            # Environment variable template
-├── composer.json
-└── Dockerfile
+└── composer.json
 ```
 
 ---
@@ -154,29 +153,12 @@ backend/
 |---|---|---|
 | PHP | 8.2 | Extensions: `mbstring`, `xml`, `curl`, `pdo`, `pdo_mysql`, `sockets` |
 | Composer | 2.x | Package manager |
-| MySQL / MariaDB | 8.4 | Or run via Docker |
+| MySQL / MariaDB | 8.4 | Install locally or via managed service |
 | Docker | 24.x | Required for VM Playground (Docker socket access) |
 
 ---
 
 ## 6. Installation
-
-### Option A — Docker (Recommended)
-
-From the **project root** (not the `backend/` folder):
-
-```bash
-docker network create app-network
-cp .env.example .env
-docker-compose up -d --build
-
-# Run migrations and seed initial data
-docker exec -it neverland-backend php artisan migrate --seed
-```
-
-The API is available at **http://localhost:8001**.
-
-### Option B — Local (Without Docker)
 
 ```bash
 cd backend
@@ -224,7 +206,7 @@ FRONTEND_URL=http://localhost:5173
 
 # ── Database ───────────────────────────────────────────────────
 DB_CONNECTION=mysql
-DB_HOST=mariadb                      # use 'mariadb' inside Docker, '127.0.0.1' locally
+DB_HOST=127.0.0.1                    # IP atau hostname database server
 DB_PORT=3306
 DB_DATABASE=neverland_portfolio
 DB_USERNAME=root
@@ -271,21 +253,6 @@ VPN_TLS_AUTH_KEY=                    # tls-auth static key
 ---
 
 ## 8. Running the Server
-
-### Docker
-
-```bash
-# Start backend only
-docker-compose up -d backend
-
-# View logs
-docker-compose logs -f backend
-
-# Run artisan commands inside container
-docker exec -it neverland-backend php artisan <command>
-```
-
-### Local
 
 ```bash
 # Terminal 1 — HTTP API
@@ -492,7 +459,7 @@ VITE_REVERB_PORT=8080
 
 ```env
 DB_CONNECTION=mysql
-DB_HOST=127.0.0.1     # or 'mariadb' inside Docker
+DB_HOST=127.0.0.1     # IP atau hostname database server
 DB_PORT=3306
 DB_DATABASE=neverland_portfolio
 DB_USERNAME=root
@@ -609,8 +576,7 @@ php artisan key:generate
 <details>
 <summary><strong>Database connection refused</strong></summary>
 
-- Local: confirm MySQL / MariaDB is running on port 3306
-- Docker: confirm `DB_HOST=mariadb` (not `127.0.0.1`) in `backend/.env`
+- Confirm MySQL / MariaDB is running on port 3306
 - Run: `php artisan config:clear` after changing `.env`
 
 </details>
@@ -632,12 +598,15 @@ Then clear config: `php artisan config:clear`
 <details>
 <summary><strong>VM start fails — docker: command not found</strong></summary>
 
-The Docker socket must be mounted in the container. Verify `docker-compose.yml` has:
+The VM Playground feature requires Docker to be installed on the server. Make sure:
 
-```yaml
-volumes:
-  - /var/run/docker.sock:/var/run/docker.sock
-```
+1. Docker is installed on the host: `docker --version`
+2. The user running PHP-FPM/Laravel has permission to access the Docker socket:
+   ```bash
+   sudo usermod -aG docker www-data
+   sudo systemctl restart php8.2-fpm
+   ```
+3. The Docker socket `/var/run/docker.sock` is accessible to the web server process.
 
 </details>
 

@@ -25,6 +25,32 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) · Versioning: 
 
 ---
 
+## [1.4.0] - 2026-03-15
+
+### Removed
+- **Docker completely removed** — `Dockerfile`, `docker-compose.yml`, `.dockerignore`, `nginx.conf` (root), `backend/Dockerfile`, `backend/docker-entrypoint.sh`, `backend/.dockerignore`, `backend/nginx.conf` semua dihapus
+- Semua instruksi Docker dari `README.md`, `INSTALL.md`, `SUPPORT.md`, dan `backend/README.md`
+- Docker badge dari header README dan backend README
+- `DB_HOST=mariadb` (Docker service name) diganti `127.0.0.1`
+
+### Added
+- **Panduan Deploy ke VPS** lengkap di `INSTALL.md` mencakup:
+  - Persiapan server (Nginx, PHP-FPM, Composer, Node.js, MariaDB)
+  - Clone, build frontend, setup backend
+  - Konfigurasi Nginx untuk frontend (`dist/`) dan backend API (`backend/public/`)
+  - Menjalankan Reverb WebSocket dengan **Supervisor**
+  - SSL otomatis dengan **Certbot**
+- Contoh konfigurasi Nginx minimal untuk frontend dan backend API di `README.md`
+- Instruksi Supervisor untuk menjalankan Reverb sebagai background process di VPS
+
+### Changed
+- `README.md`: Table of Contents diperbarui (Quick Start Docker → Installation & Setup), section Prerequisites hapus Docker, section Building for Production diganti instruksi VPS
+- `SUPPORT.md`: Quick start diganti manual setup, tabel requirements hapus Docker
+- `backend/README.md`: Installation diganti satu opsi langsung (tanpa Docker), Running the Server hapus subseksi Docker, troubleshooting VM diperbarui untuk lingkungan VPS
+- `CHANGELOG.md`: Upgrade guides diperbarui, hapus `docker-compose up -d --build`
+
+---
+
 ## [1.3.0] - 2026-03-14
 
 ### Added
@@ -129,9 +155,7 @@ cd backend && composer install
 php artisan migrate
 php artisan config:clear
 php artisan cache:clear
-
-# Rebuild Docker containers
-docker-compose up -d --build
+php artisan optimize
 ```
 
 </details>
@@ -146,7 +170,7 @@ cd backend && composer install
 php artisan migrate
 php artisan config:clear
 php artisan cache:clear
-docker-compose up -d --build
+php artisan optimize
 ```
 
 </details>
@@ -262,9 +286,9 @@ npm run build
    php artisan config:clear
    php artisan cache:clear
    ```
-4. Rebuild (Docker):
+4. Optimize backend:
    ```bash
-   docker-compose up -d --build
+   php artisan optimize
    ```
 
 </details>

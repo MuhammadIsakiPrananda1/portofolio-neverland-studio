@@ -35,17 +35,23 @@
 <details>
 <summary><strong>How do I run this project?</strong></summary>
 
-The fastest way is with Docker:
+Setup cepat:
 
 ```bash
 git clone https://github.com/MuhammadIsakiPrananda1/portfolio-neverland-studio-v2.git
 cd portfolio-neverland-studio
-docker network create app-network
 cp .env.example .env
-docker-compose up -d --build
+npm install && npm run dev
 ```
 
-Visit **http://localhost:5173** (dev frontend) once containers are up.
+Buka terminal kedua untuk backend:
+```bash
+cd backend && cp .env.example .env && composer install
+php artisan key:generate && php artisan migrate --seed
+php artisan serve --port=8001
+```
+
+Visit **http://localhost:5173** (frontend) dan **http://localhost:8001** (API).
 See [INSTALL.md](INSTALL.md) for the full guide.
 
 </details>
@@ -59,7 +65,6 @@ See [INSTALL.md](INSTALL.md) for the full guide.
 | PHP | 8.2 | 8.3+ |
 | Composer | 2.x | latest |
 | MySQL / MariaDB | 8.4 | 8.4+ |
-| Docker | 24.x | 25.x+ |
 | RAM | 4 GB | 8 GB+ |
 
 </details>

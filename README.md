@@ -4,14 +4,13 @@
 
 *Securing the Digital Future · Engineering Secure IT Systems*
 
-**A full-stack cybersecurity portfolio platform — React 19 front-end, Laravel 11 REST API, Docker-orchestrated infrastructure, real-time dashboard, interactive CTF playground, and an OpenVPN access layer.**
+**A full-stack cybersecurity portfolio platform — React 19 front-end, Laravel 11 REST API, real-time dashboard, interactive CTF playground, and an OpenVPN access layer.**
 
 [![React](https://img.shields.io/badge/React-19.2-61DAFB?style=for-the-badge&logo=react&logoColor=white)](https://react.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
 [![Vite](https://img.shields.io/badge/Vite-7.2-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev)
 [![Laravel](https://img.shields.io/badge/Laravel-11-FF2D20?style=for-the-badge&logo=laravel&logoColor=white)](https://laravel.com)
 [![PHP](https://img.shields.io/badge/PHP-8.2+-777BB4?style=for-the-badge&logo=php&logoColor=white)](https://www.php.net)
-[![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com)
 [![TailwindCSS](https://img.shields.io/badge/Tailwind-3.4-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com)
 [![License](https://img.shields.io/badge/License-MIT-22c55e?style=for-the-badge)](LICENSE)
 
@@ -28,20 +27,19 @@
 3. [Tech Stack](#3-tech-stack)
 4. [Project Structure](#4-project-structure)
 5. [Prerequisites](#5-prerequisites)
-6. [Quick Start — Docker](#6-quick-start--docker-recommended)
-7. [Manual Setup — Without Docker](#7-manual-setup--without-docker)
-8. [Environment Variables](#8-environment-variables)
-9. [Running the Application](#9-running-the-application)
-10. [Building for Production](#10-building-for-production)
-11. [API Reference](#11-api-reference)
-12. [Playground & CTF Hub](#12-playground--ctf-hub)
-13. [OpenVPN Access](#13-openvpn-access)
-14. [Customization](#14-customization)
-15. [Troubleshooting](#15-troubleshooting)
-16. [Roadmap](#16-roadmap)
-17. [Contributing](#17-contributing)
-18. [License](#18-license)
-19. [Contact](#19-contact)
+6. [Installation & Setup](#6-installation--setup)
+7. [Environment Variables](#7-environment-variables)
+8. [Running the Application](#8-running-the-application)
+9. [Building for Production](#9-building-for-production)
+10. [API Reference](#10-api-reference)
+11. [Playground & CTF Hub](#11-playground--ctf-hub)
+12. [OpenVPN Access](#12-openvpn-access)
+13. [Customization](#13-customization)
+14. [Troubleshooting](#14-troubleshooting)
+15. [Roadmap](#15-roadmap)
+16. [Contributing](#16-contributing)
+17. [License](#17-license)
+18. [Contact](#18-contact)
 
 ---
 
@@ -150,7 +148,6 @@
 
 | Tool | Purpose |
 |---|---|
-| Docker + Docker Compose | Container orchestration |
 | Nginx | Web server and reverse proxy |
 | phpMyAdmin | Database management UI |
 | OpenVPN | Client VPN with hourly IP rotation |
@@ -228,7 +225,6 @@ portfolio-neverland-studio/
 │   ├── .env.example                      # Environment template
 │   └── composer.json
 │
-├── docker-compose.yml                    # Multi-container orchestration
 ├── .env.example                          # Frontend environment template
 ├── vite.config.ts                        # Vite + path aliases config
 ├── tailwind.config.js                    # Tailwind theme config
@@ -250,52 +246,14 @@ portfolio-neverland-studio/
 | Node.js | 22.x | 24.x (LTS) |
 | PHP | 8.2 | 8.3+ |
 | Composer | 2.x | latest |
-| Docker | 24.x | 25.x+ |
-| Docker Compose | v2 plugin | v2.24+ |
+| MySQL/MariaDB | 8.0 | 8.4+ |
 | Git | 2.x | latest |
 
-> **Windows users:** Install [Docker Desktop](https://www.docker.com/products/docker-desktop) and make sure it is running before executing any `docker` commands.
-
 ---
 
-## 6. Quick Start — Docker (Recommended)
+## 6. Installation & Setup
 
-The fastest way to get the entire stack (frontend, backend, database, phpMyAdmin) running locally.
-
-```bash
-# 1. Clone the repository
-git clone https://github.com/MuhammadIsakiPrananda1/portfolio-neverland-studio-v2.git
-cd portfolio-neverland-studio
-
-# 2. Create the shared Docker network
-docker network create app-network
-
-# 3. Copy environment file and review it
-cp .env.example .env
-
-# 4. Build and start all containers in the background
-docker-compose up -d --build
-
-# 5. Run database migrations
-docker exec -it neverland-backend php artisan migrate --seed
-```
-
-Once complete, the following services are available:
-
-| Service | URL |
-|---|---|
-| Frontend (dev) | http://localhost:5173 |
-| Backend API | http://localhost:8001 |
-| WebSocket (Reverb) | ws://localhost:8080 |
-| phpMyAdmin | http://localhost:8081 |
-
-> First build takes 3–8 minutes depending on your machine and internet speed.
-
----
-
-## 7. Manual Setup — Without Docker
-
-Use this if you prefer running services directly on your machine.
+Use the following steps to set up the project on your local machine.
 
 ### Step 1 — Clone
 
@@ -390,7 +348,7 @@ FRONTEND_URL=http://localhost:5173
 
 # Database
 DB_CONNECTION=mysql
-DB_HOST=mariadb                   # Use 'mariadb' inside Docker, '127.0.0.1' locally
+DB_HOST=127.0.0.1                 # IP atau hostname database server
 DB_PORT=3306
 DB_DATABASE=neverland_portfolio
 DB_USERNAME=root
@@ -428,24 +386,6 @@ VPN_TLS_AUTH_KEY=                 # tls-auth static key from your OpenVPN server
 
 ## 9. Running the Application
 
-### Docker
-
-```bash
-# Start all services
-docker-compose up -d
-
-# Stop all services
-docker-compose down
-
-# View live logs
-docker-compose logs -f
-
-# Restart a single service
-docker-compose restart backend
-```
-
-### Without Docker
-
 ```bash
 # Terminal 1 — Frontend
 npm run dev
@@ -480,7 +420,7 @@ npm run build
 npm run preview
 ```
 
-The compiled output is in `dist/` and served by Nginx inside Docker.
+The compiled output is in `dist/` and can be served by any static file web server (e.g., Nginx).
 
 ### Backend Optimization
 
@@ -497,16 +437,90 @@ php artisan route:cache
 php artisan view:cache
 ```
 
-### Docker Production Deploy
+### Deploy ke VPS / Server
 
 ```bash
-docker-compose up -d --build
+# 1. Login ke server via SSH dan clone repo
+git clone https://github.com/MuhammadIsakiPrananda1/portfolio-neverland-studio-v2.git
+cd portfolio-neverland-studio
 
-# Confirm all containers are healthy
-docker-compose ps
+# 2. Install frontend dependencies dan build
+npm install
+npm run build
+# Output ada di folder dist/
 
-# Follow logs
-docker-compose logs -f backend
+# 3. Install backend dependencies
+cd backend
+composer install --no-dev --optimize-autoloader
+cp .env.example .env
+php artisan key:generate
+
+# 4. Edit .env sesuai environment server
+# DB_HOST, DB_DATABASE, DB_USERNAME, DB_PASSWORD
+# APP_URL, FRONTEND_URL, REVERB_* dsb.
+
+# 5. Buat database dan jalankan migrasi
+mysql -u root -p -e "CREATE DATABASE neverland_portfolio CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+php artisan migrate --seed
+
+# 6. Cache konfigurasi untuk performa
+php artisan optimize
+
+# 7. Set permission folder storage & cache
+chmod -R 775 storage bootstrap/cache
+chown -R www-data:www-data storage bootstrap/cache
+```
+
+Setelah build, arahkan web server ke:
+- **Frontend (Nginx)**: root ke folder `dist/` di root project
+- **Backend API (Nginx/PHP-FPM)**: root ke folder `backend/public/`
+
+Contoh konfigurasi Nginx minimal:
+
+```nginx
+# Frontend — port 80 / domain utama
+server {
+    listen 80;
+    server_name neverlandstudio.com www.neverlandstudio.com;
+    root /var/www/portfolio-neverland-studio/dist;
+    index index.html;
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+}
+
+# Backend API — subdomain api
+server {
+    listen 80;
+    server_name api.neverlandstudio.com;
+    root /var/www/portfolio-neverland-studio/backend/public;
+    index index.php;
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    location ~ \.php$ {
+        fastcgi_pass unix:/var/run/php/php8.2-fpm.sock;
+        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+        include fastcgi_params;
+    }
+}
+```
+
+Jalankan juga WebSocket server Reverb sebagai background process (gunakan `supervisor` atau `screen`):
+
+```bash
+# Dengan supervisor (direkomendasikan)
+# Buat file /etc/supervisor/conf.d/reverb.conf:
+# [program:reverb]
+# command=php /var/www/portfolio-neverland-studio/backend/artisan reverb:start
+# autostart=true
+# autorestart=true
+
+# Atau manual (sementara):
+cd backend && php artisan reverb:start &
 ```
 
 ---
@@ -695,17 +709,6 @@ const hue = 0; // 0 = red, 195 = cyan, 270 = purple
 ## 15. Troubleshooting
 
 <details>
-<summary><strong>Docker Desktop not running</strong></summary>
-
-```
-Error: cannot connect to the Docker daemon
-```
-
-**Fix:** Open **Docker Desktop** from the Start Menu / Applications and wait for it to show "Engine running" before retrying.
-
-</details>
-
-<details>
 <summary><strong>Port already in use</strong></summary>
 
 ```bash
@@ -754,17 +757,6 @@ composer install --no-interaction
 </details>
 
 <details>
-<summary><strong>Full Docker reset</strong></summary>
-
-```bash
-docker-compose down -v --rmi all
-docker-compose build --no-cache
-docker-compose up -d
-```
-
-</details>
-
-<details>
 <summary><strong>Real-time dashboard not updating</strong></summary>
 
 1. Confirm Reverb is running:
@@ -783,7 +775,7 @@ docker-compose up -d
 <details>
 <summary><strong>VPN config download returns 404 or connection refused</strong></summary>
 
-1. Ensure the backend container is running: `docker ps | grep neverland-backend`
+1. Ensure the backend server is running: `php artisan serve`
 2. Check that `VPS_IP` and `VPN_IP_POOL` are set in `backend/.env`
 3. Verify `VPN_CA_CERT` and `VPN_TLS_AUTH_KEY` are populated with valid OpenVPN credentials
 
