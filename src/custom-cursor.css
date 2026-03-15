@@ -1,0 +1,107 @@
+/* ─── Canvas – particle trail (full viewport, behind everything) ─────────── */
+.cursor-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 9995;
+    pointer-events: none;
+    transition: opacity 0.4s ease;
+}
+
+/* ─── Precision dot – snaps exactly to mouse ────────────────────────────── */
+.cursor-dot {
+    width: 8px;
+    height: 8px;
+    background: #ffffff;
+    border-radius: 50%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 9999;
+    pointer-events: none;
+    mix-blend-mode: difference;
+    transition: opacity 0.3s ease, width 0.15s ease, height 0.15s ease, background 0.2s ease;
+    box-shadow:
+        0 0 4px rgba(255, 255, 255, 0.9),
+        0 0 10px rgba(255, 255, 255, 0.4);
+    will-change: transform;
+}
+
+/* Dot shrinks on click */
+.cursor-dot.clicking {
+    width: 4px;
+    height: 4px;
+    background: #0ea5e9;
+    box-shadow:
+        0 0 6px rgba(14, 165, 233, 1),
+        0 0 16px rgba(14, 165, 233, 0.6);
+}
+
+/* ─── Trailing ring – follows with lerp delay ───────────────────────────── */
+.cursor-ring {
+    width: 36px;
+    height: 36px;
+    border: 1.5px solid rgba(239, 68, 68, 0.85);
+    border-radius: 50%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 9998;
+    pointer-events: none;
+    box-shadow:
+        0 0 6px  rgba(239, 68, 68, 0.5),
+        0 0 14px rgba(239, 68, 68, 0.25),
+        inset 0 0 6px rgba(239, 68, 68, 0.06);
+    transition:
+        width  0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+        height 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+        border-color 0.3s ease,
+        background  0.3s ease,
+        box-shadow  0.3s ease,
+        opacity     0.4s ease;
+    will-change: transform;
+}
+
+/* Ring expands + turns deeper red when hovering interactive elements */
+.cursor-ring.hover {
+    width: 60px;
+    height: 60px;
+    border-color: rgba(220, 38, 38, 0.9);
+    background: radial-gradient(
+        circle,
+        rgba(220, 38, 38, 0.12) 0%,
+        rgba(239, 68, 68, 0.06) 55%,
+        transparent 100%
+    );
+    box-shadow:
+        0 0 10px rgba(220, 38, 38, 0.55),
+        0 0 28px rgba(220, 38, 38, 0.22),
+        inset 0 0 10px rgba(220, 38, 38, 0.08);
+}
+
+/* Ring pulses / shrinks on click */
+.cursor-ring.clicking {
+    width: 20px;
+    height: 20px;
+    border-color: rgba(239, 68, 68, 1);
+    background: rgba(239, 68, 68, 0.18);
+    box-shadow:
+        0 0 14px rgba(239, 68, 68, 0.9),
+        0 0 36px rgba(239, 68, 68, 0.45);
+    transition:
+        width  0.1s ease,
+        height 0.1s ease,
+        border-color 0.1s ease,
+        background   0.1s ease,
+        box-shadow   0.1s ease;
+}
+
+@media (pointer: coarse) {
+  .cursor-canvas,
+  .cursor-ring,
+  .cursor-dot {
+    display: none !important;
+  }
+}

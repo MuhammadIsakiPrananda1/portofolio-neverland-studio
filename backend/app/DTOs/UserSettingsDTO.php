@@ -1,0 +1,113 @@
+<?php
+
+namespace App\DTOs;
+
+class UserSettingsDTO
+{
+    public function __construct(
+        public readonly ?int $userId,
+        public readonly ?string $avatar,
+        public readonly ?string $phone,
+        public readonly ?string $company,
+        public readonly ?string $position,
+        public readonly ?string $bio,
+        public readonly ?string $website,
+        public readonly ?string $location,
+        public readonly ?string $githubUrl,
+        public readonly ?string $linkedinUrl,
+        public readonly ?string $twitterUrl,
+        public readonly ?string $instagramUrl,
+        public readonly ?string $facebookUrl,
+        public readonly bool $emailNotifications,
+        public readonly bool $pushNotifications,
+        public readonly bool $smsNotifications,
+        public readonly bool $notificationNewMessage,
+        public readonly bool $notificationNewProject,
+        public readonly bool $notificationNewComment,
+        public readonly bool $notificationSystemUpdates,
+        public readonly bool $profilePublic,
+        public readonly bool $showEmail,
+        public readonly bool $showPhone,
+        public readonly bool $showActivity,
+        public readonly string $theme,
+        public readonly string $language,
+        public readonly string $timezone,
+        public readonly string $dateFormat,
+        public readonly string $timeFormat,
+        public readonly bool $twoFactorEnabled,
+        public readonly bool $loginNotifications,
+    ) {}
+
+    public static function fromRequest(array $data): self
+    {
+        return new self(
+            userId: $data['user_id'] ?? null,
+            avatar: $data['avatar'] ?? null,
+            phone: $data['phone'] ?? null,
+            company: $data['company'] ?? null,
+            position: $data['position'] ?? null,
+            bio: $data['bio'] ?? null,
+            website: $data['website'] ?? null,
+            location: $data['location'] ?? null,
+            githubUrl: $data['github_url'] ?? null,
+            linkedinUrl: $data['linkedin_url'] ?? null,
+            twitterUrl: $data['twitter_url'] ?? null,
+            instagramUrl: $data['instagram_url'] ?? null,
+            facebookUrl: $data['facebook_url'] ?? null,
+            emailNotifications: $data['email_notifications'] ?? true,
+            pushNotifications: $data['push_notifications'] ?? true,
+            smsNotifications: $data['sms_notifications'] ?? false,
+            notificationNewMessage: $data['notification_new_message'] ?? true,
+            notificationNewProject: $data['notification_new_project'] ?? true,
+            notificationNewComment: $data['notification_new_comment'] ?? true,
+            notificationSystemUpdates: $data['notification_system_updates'] ?? true,
+            profilePublic: $data['profile_public'] ?? false,
+            showEmail: $data['show_email'] ?? false,
+            showPhone: $data['show_phone'] ?? false,
+            showActivity: $data['show_activity'] ?? true,
+            theme: $data['theme'] ?? 'light',
+            language: $data['language'] ?? 'en',
+            timezone: $data['timezone'] ?? 'UTC',
+            dateFormat: $data['date_format'] ?? 'Y-m-d',
+            timeFormat: $data['time_format'] ?? 'H:i',
+            twoFactorEnabled: $data['two_factor_enabled'] ?? false,
+            loginNotifications: $data['login_notifications'] ?? true,
+        );
+    }
+
+    public function toArray(): array
+    {
+        return [
+            'avatar' => $this->avatar,
+            'phone' => $this->phone,
+            'company' => $this->company,
+            'position' => $this->position,
+            'bio' => $this->bio,
+            'website' => $this->website,
+            'location' => $this->location,
+            'github_url' => $this->githubUrl,
+            'linkedin_url' => $this->linkedinUrl,
+            'twitter_url' => $this->twitterUrl,
+            'instagram_url' => $this->instagramUrl,
+            'facebook_url' => $this->facebookUrl,
+            'email_notifications' => $this->emailNotifications,
+            'push_notifications' => $this->pushNotifications,
+            'sms_notifications' => $this->smsNotifications,
+            'notification_new_message' => $this->notificationNewMessage,
+            'notification_new_project' => $this->notificationNewProject,
+            'notification_new_comment' => $this->notificationNewComment,
+            'notification_system_updates' => $this->notificationSystemUpdates,
+            'profile_public' => $this->profilePublic,
+            'show_email' => $this->showEmail,
+            'show_phone' => $this->showPhone,
+            'show_activity' => $this->showActivity,
+            'theme' => $this->theme,
+            'language' => $this->language,
+            'timezone' => $this->timezone,
+            'date_format' => $this->dateFormat,
+            'time_format' => $this->timeFormat,
+            'two_factor_enabled' => $this->twoFactorEnabled,
+            'login_notifications' => $this->loginNotifications,
+        ];
+    }
+}

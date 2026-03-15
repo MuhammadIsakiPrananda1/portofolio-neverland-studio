@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+
+# Dashboard (private — do not index)
+Disallow: /dashboard/
+Disallow: /auth/
+
+# Assets
+Allow: /*.js$
+Allow: /*.css$
+Allow: /*.webp$
+Allow: /*.png$
+
+Sitemap: https://portfolio.neverlandstudio.my.id/sitemap.xml
