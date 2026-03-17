@@ -1,5 +1,4 @@
 // Central export point for all custom hooks
-export { useAuthState } from './useAuthState';
 export { useBodyScrollLock } from './useBodyScrollLock';
 export { useSidebarState } from './useSidebarState';
 export { useAutoScrollToBottom } from './useAutoScrollToBottom';

@@ -10,7 +10,7 @@ import Button from '@components/atoms/Button';
 import AuthModal from '@components/organisms/AuthModal';
 import { Routes, COMPANY_INFO } from '@config/constants';
 import { useCart } from '@/contexts/CartContext';
-import { useAuthState } from '@/hooks/useAuthState';
+import { useAuth } from '@/contexts/AuthContext';
 import { slideUp } from '@utils/animations';
 
 function formatRupiah(num: number): string {
@@ -30,7 +30,7 @@ export default function ITServicesCheckoutPage() {
         totalSavings,
     } = useCart();
     const navigate = useNavigate();
-    const { isAuthenticated } = useAuthState();
+    const { isAuthenticated } = useAuth();
     const [showAuthModal, setShowAuthModal] = useState(false);
 
     const [formData, setFormData] = useState({

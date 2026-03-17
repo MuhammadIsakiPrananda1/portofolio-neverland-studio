@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Code, CheckCircle, XCircle, Info, ArrowLeft } from 'lucide-react';
+import { Code, CheckCircle, XCircle, Info, ArrowLeft, Loader } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Button from '@components/atoms/Button';
 import AuthModal from '@components/organisms/AuthModal';
-import { useAuthState } from '@/hooks/useAuthState';
+import { useAuth } from '@/contexts/AuthContext';
+import { challengeService } from '@/services/challenge.service';
 
 interface Challenge {
   id: string;
@@ -44,18 +45,41 @@ const XSS_CHALLENGES: Challenge[] = [
 
 const PlaygroundWeb = () => {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuthState();
+  const { isAuthenticated } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [selectedChallenge, setSelectedChallenge] = useState<Challenge | null>(null);
   const [solvedChallenges, setSolvedChallenges] = useState<string[]>([]);
   const [userInput, setUserInput] = useState('');
   const [feedback, setFeedback] = useState('');
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Fetch solved challenges from backend on mount
   useEffect(() => {
-    const saved = localStorage.getItem('solved-xss-challenges');
-    if (saved) setSolvedChallenges(JSON.parse(saved));
-  }, []);
+    if (isAuthenticated) {
+      loadSolvedChallenges();
+    } else {
+      // Fall back to localStorage for non-authenticated users
+      const saved = localStorage.getItem('solved-xss-challenges');
+      if (saved) setSolvedChallenges(JSON.parse(saved));
+    }
+  }, [isAuthenticated]);
+
+  const loadSolvedChallenges = async () => {
+    try {
+      const response = await challengeService.getSolvedChallenges();
+      if (response.status === 'success') {
+        setSolvedChallenges(response.solved);
+        // Also update localStorage as backup
+        localStorage.setItem('solved-xss-challenges', JSON.stringify(response.solved));
+      }
+    } catch (error) {
+      console.error('Failed to load solved challenges:', error);
+      // Fall back to localStorage
+      const saved = localStorage.getItem('solved-xss-challenges');
+      if (saved) setSolvedChallenges(JSON.parse(saved));
+    }
+  };
 
   const handleChallengeClick = (challenge: Challenge) => {
     if (!isAuthenticated) {
@@ -68,26 +92,43 @@ const PlaygroundWeb = () => {
     setIsCorrect(null);
   };
 
-  const handleSubmit = () => {
-    if (!selectedChallenge) return;
+  const handleSubmit = async () => {
+    if (!selectedChallenge || !isAuthenticated) return;
 
-    const correctAnswers: Record<string, string[]> = {
-      'xss-001': ['<script>alert(1)</script>', '<script>alert("xss")</script>'],
-      'xss-002': ['<img src=x onerror=alert(1)>', '<svg onload=alert(1)>'],
-      'xss-003': ['<iframe src=javascript:alert(1)>'],
-    };
+    try {
+      setIsSubmitting(true);
+      const response = await challengeService.submitFlag({
+        challenge_id: selectedChallenge.id,
+        flag: userInput.trim(),
+        category: 'web',
+      });
 
-    const correct = correctAnswers[selectedChallenge.id];
-    if (correct && correct.some(ans => userInput.toLowerCase().includes(ans.toLowerCase()))) {
-      setIsCorrect(true);
-      setFeedback('Correct! Challenge completed.');
-      const newSolved = [...solvedChallenges, selectedChallenge.id];
-      setSolvedChallenges(newSolved);
-      localStorage.setItem('solved-xss-challenges', JSON.stringify(newSolved));
-      setTimeout(() => setSelectedChallenge(null), 2000);
-    } else {
+      if (response.status === 'correct') {
+        setIsCorrect(true);
+        setFeedback('🎉 Correct! Challenge completed successfully!');
+        
+        // Update solved challenges
+        const newSolved = [...solvedChallenges, selectedChallenge.id];
+        setSolvedChallenges(newSolved);
+        localStorage.setItem('solved-xss-challenges', JSON.stringify(newSolved));
+        
+        setTimeout(() => setSelectedChallenge(null), 2000);
+      } else if (response.status === 'already_solved') {
+        setIsCorrect(null);
+        setFeedback('⚡ You have already solved this challenge!');
+      } else if (response.status === 'incorrect') {
+        setIsCorrect(false);
+        setFeedback('❌ Incorrect flag. Try again!');
+      } else {
+        setIsCorrect(false);
+        setFeedback(response.message || 'An error occurred. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error submitting flag:', error);
       setIsCorrect(false);
-      setFeedback('Incorrect. Try again!');
+      setFeedback('Failed to submit flag. Please check your connection.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -304,15 +345,24 @@ const PlaygroundWeb = () => {
                 <div className="flex gap-4">
                   <Button
                     onClick={handleSubmit}
+                    disabled={isSubmitting}
                     variant="primary"
-                    className="flex-1 bg-red-600 hover:bg-red-700 rounded-sm uppercase tracking-widest font-mono text-xs border border-red-500"
+                    className="flex-1 bg-red-600 hover:bg-red-700 rounded-sm uppercase tracking-widest font-mono text-xs border border-red-500 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
-                    Submit Solution
+                    {isSubmitting ? (
+                      <>
+                        <Loader className="w-4 h-4 animate-spin" />
+                        Verifying...
+                      </>
+                    ) : (
+                      'Submit Solution'
+                    )}
                   </Button>
                   <Button
                     onClick={() => setSelectedChallenge(null)}
+                    disabled={isSubmitting}
                     variant="ghost"
-                    className="text-slate-400 hover:text-white rounded-sm uppercase tracking-widest font-mono text-xs border border-white/5 bg-[#0B1120]"
+                    className="text-slate-400 hover:text-white rounded-sm uppercase tracking-widest font-mono text-xs border border-white/5 bg-[#0B1120] disabled:opacity-50"
                   >
                     Close
                   </Button>

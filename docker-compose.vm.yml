@@ -1,0 +1,48 @@
+# Docker Compose for Neverland Studio VM Lab
+# Run: docker-compose -f docker-compose.vm.yml up -d
+
+version: '3.9'
+
+services:
+  # Debian 13 VM with XFCE + VNC (blueprint image)
+  debian-vm:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.debian-vm
+    image: neverland-vm-debian:latest
+    container_name: neverland-vm-template
+    environment:
+      - DISPLAY=:1
+      - VNC_PASSWORD=neverland2024
+    ports:
+      - "5901:5901"
+    volumes:
+      - ./vm-storage:/home/lab/data
+    resources:
+      limits:
+        cpus: '1'
+        memory: 1024M
+      reservations:
+        cpus: '0.5'
+        memory: 512M
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "netstat", "-an"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Websockify bridge (converts VNC to WebSocket for noVNC)
+  websockify:
+    image: novnc/websockify:latest
+    container_name: neverland-websockify
+    command: --web /usr/share/novnc 6080 localhost:5901
+    ports:
+      - "6080:6080"
+    depends_on:
+      - debian-vm
+    restart: unless-stopped
+
+volumes:
+  vm-storage:
+    driver: local

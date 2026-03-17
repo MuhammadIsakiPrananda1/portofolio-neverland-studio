@@ -4,7 +4,7 @@ import { Smartphone, CheckCircle, XCircle, Info, ArrowLeft } from 'lucide-react'
 import { useNavigate } from 'react-router-dom';
 import Button from '@components/atoms/Button';
 import AuthModal from '@components/organisms/AuthModal';
-import { useAuthState } from '@/hooks/useAuthState';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface Challenge {
   id: string;
@@ -29,7 +29,7 @@ const MOBILE_CHALLENGES: Challenge[] = [
 
 const PlaygroundMobile = () => {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuthState();
+  const { isAuthenticated } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [selectedChallenge, setSelectedChallenge] = useState<Challenge | null>(null);
   const [solvedChallenges, setSolvedChallenges] = useState<string[]>([]);

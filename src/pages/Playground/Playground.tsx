@@ -11,7 +11,7 @@ import Button from '@components/atoms/Button';
 import SectionTitle from '@components/molecules/SectionTitle';
 import AuthModal from '@components/organisms/AuthModal';
 import { staggerContainer, staggerItem } from '@utils/animations';
-import { useAuthState } from '@/hooks/useAuthState';
+import { useAuth } from '@/contexts/AuthContext';
 
 // Challenge types
 type ChallengeType = 'sql-injection' | 'xss' | 'command-injection' | 'crypto' | 'ctf' | 'binary-exploitation' | 'reverse-engineering' | 'forensics' | 'steganography' | 'osint' | 'mobile-security';
@@ -239,7 +239,7 @@ export default function PlaygroundPage() {
   const [filterType, setFilterType] = useState<string>('All');
   const [visibleChallenges, setVisibleChallenges] = useState(12);
   const [showSolvedChallenges, setShowSolvedChallenges] = useState(true);
-  const { isAuthenticated: isLoggedIn } = useAuthState();
+  const { isAuthenticated: isLoggedIn } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showChallengeModal, setShowChallengeModal] = useState(false);
 

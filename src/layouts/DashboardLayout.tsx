@@ -10,6 +10,7 @@ import {
 import { Routes, COMPANY_INFO } from '@config/constants';
 import DashboardLogin from '@pages/Dashboard/DashboardLogin';
 import logoImage from '@/assets/logo.webp';
+import { useAuth } from '@/contexts/AuthContext';
 
 // ─────────────────────────────────────────────────────────────────────
 // Types
@@ -330,10 +331,13 @@ function SidebarContent({
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [userEmail, setUserEmail] = useState('');
-  const [userName, setUserName] = useState('');
+  const { user, isAuthenticated, logout } = useAuth();
+  
+  const userEmail = user?.email || 'admin@neverland.studio';
+  const userName = user?.name || 'Admin Neverland';
+  const isLoggedIn = isAuthenticated;
+  
   const [userPhoto, setUserPhoto] = useState<string | null>(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
 
   // All groups start expanded so users immediately see every menu item
@@ -370,23 +374,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
   }, []);
 
-  // Sync auth state from localStorage + listen for external changes
+  // Load stored profile photo if available
   useEffect(() => {
-    const syncAuth = () => {
-      const loggedIn = localStorage.getItem('dashboardLoggedIn') === 'true';
-      const email    = localStorage.getItem('dashboardUserEmail');
-      const name     = localStorage.getItem('dashboardUserName');
-      const photo    = localStorage.getItem('settings_profile_photo');
-
-      setIsLoggedIn(loggedIn);
-      if (email) setUserEmail(email);
-      if (name)  setUserName(name);
-      setUserPhoto(photo);
-    };
-
-    syncAuth();
-    window.addEventListener('dashboardLoginChanged', syncAuth);
-    return () => window.removeEventListener('dashboardLoginChanged', syncAuth);
+    const photo = localStorage.getItem('settings_profile_photo');
+    if (photo) setUserPhoto(photo);
   }, []);
 
   // Notify the rest of the app when the mobile drawer opens / closes
@@ -404,9 +395,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   if (!isLoggedIn) return <DashboardLogin />;
 
   const handleLogout = () => {
-    ['dashboardLoggedIn', 'dashboardUserEmail', 'dashboardUserName',
-      'dashboardProfile', 'dashboardRemember'].forEach(k => localStorage.removeItem(k));
-    window.dispatchEvent(new Event('dashboardLoginChanged'));
+    logout();
     navigate(Routes.HOME);
   };
 

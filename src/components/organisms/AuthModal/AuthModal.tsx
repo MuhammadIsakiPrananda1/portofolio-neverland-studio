@@ -195,11 +195,29 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
   // Redirect ke backend OAuth — backend handle seluruh flow lalu redirect balik ke /auth/callback?token=...
   const handleGoogleSignIn = () => {
-    window.location.href = `${API_BASE}/api/v1/auth/google`;
+    try {
+      if (!API_BASE) {
+        setError('API URL tidak tersedia. Hubungi administrator.');
+        return;
+      }
+      window.location.href = `${API_BASE}/api/v1/auth/google`;
+    } catch (err) {
+      setError('Gagal menginisiasi Google login. Coba lagi.');
+      console.error('Google OAuth error:', err);
+    }
   };
 
   const handleGithubSignIn = () => {
-    window.location.href = `${API_BASE}/api/v1/auth/github`;
+    try {
+      if (!API_BASE) {
+        setError('API URL tidak tersedia. Hubungi administrator.');
+        return;
+      }
+      window.location.href = `${API_BASE}/api/v1/auth/github`;
+    } catch (err) {
+      setError('Gagal menginisiasi GitHub login. Coba lagi.');
+      console.error('GitHub OAuth error:', err);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

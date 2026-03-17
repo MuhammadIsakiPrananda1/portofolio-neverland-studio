@@ -28,9 +28,13 @@ class User extends Authenticatable
         'avatar',
         'role',
         'status',
+        'google_id',
+        'github_id',
+        'provider',
         'two_factor_secret',
         'two_factor_recovery_codes',
         'two_factor_confirmed_at',
+        'email_verified_at',
     ];
 
     protected $hidden = [
@@ -66,5 +70,47 @@ class User extends Authenticatable
     public function media()
     {
         return $this->hasMany(Media::class);
+    }
+
+    /**
+     * CTF Relationships
+     */
+    public function challengeSolves()
+    {
+        return $this->hasMany(ChallengeSolve::class);
+    }
+
+    public function submissions()
+    {
+        return $this->hasMany(Submission::class);
+    }
+
+    public function firstBloods()
+    {
+        return $this->hasMany(Challenge::class, 'first_blood_user_id');
+    }
+
+    /**
+     * Get total CTF score
+     */
+    public function getTotalScore(): int
+    {
+        return (int) ChallengeSolve::where('user_id', $this->id)->sum('points_awarded');
+    }
+
+    /**
+     * Get solved challenges count
+     */
+    public function getSolvedCount(): int
+    {
+        return $this->challengeSolves()->count();
+    }
+
+    /**
+     * Get first blood count
+     */
+    public function getFirstBloodCount(): int
+    {
+        return Challenge::where('first_blood_user_id', $this->id)->count();
     }
 }

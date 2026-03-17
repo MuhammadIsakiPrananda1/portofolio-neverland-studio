@@ -22,6 +22,9 @@ return Application::configure(basePath: dirname(__DIR__))
             \Illuminate\Http\Request::HEADER_X_FORWARDED_PROTO
         );
 
+        // Decode base64 bearer tokens to bypass WAF (ModSecurity CRS)
+        $middleware->prepend(\App\Http\Middleware\DecodeBase64Token::class);
+
         // Exclude VM routes from CSRF verification (public endpoints)
         $middleware->validateCsrfTokens(except: [
             'api/v1/vm/*',

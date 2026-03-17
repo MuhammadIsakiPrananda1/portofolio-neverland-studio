@@ -2,6 +2,8 @@ import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BookOpen, Search, Tag, ChevronRight, X, Shield } from 'lucide-react';
 import { staggerContainer, staggerItem, slideUp } from '@utils/animations';
+import { Link } from 'react-router-dom';
+import { Routes } from '@/config/constants';
 import SEO from '@components/atoms/SEO/SEO';
 
 interface GlossaryTerm {
@@ -345,15 +347,28 @@ export default function SecurityGlossary() {
                     </AnimatePresence>
 
                     {/* ─── Bottom note ─── */}
+                    {/* ─── Bottom CTA & Note ─── */}
                     {filtered.length > 0 && (
-                        <motion.p
-                            className="text-center text-xs text-gray-600 mt-12"
+                        <motion.div
+                            className="text-center mt-12 space-y-4"
                             initial={{ opacity: 0 }}
                             whileInView={{ opacity: 1 }}
                             viewport={{ once: true }}
                         >
-                            Showing {filtered.length} of {glossaryTerms.length} terms · Click any card to expand its full definition and related terms.
-                        </motion.p>
+                            <p className="text-xs text-gray-600">
+                                Showing {filtered.length} of {glossaryTerms.length} terms · Click any card to expand its full definition and related terms.
+                            </p>
+                            <div className="pt-6 border-t border-white/5">
+                                <p className="text-gray-400 mb-4 font-mono">Want to learn how these attacks actually work in the real world?</p>
+                                <Link 
+                                    to={Routes.WEB_SECURITY_VULNERABILITIES}
+                                    className="inline-flex items-center gap-2 px-6 py-3 bg-red-500 hover:bg-red-600 text-white font-mono font-bold uppercase tracking-widest text-sm rounded-sm transition-all shadow-[0_0_15px_rgba(239,68,68,0.3)] hover:shadow-[0_0_25px_rgba(239,68,68,0.5)]"
+                                >
+                                    <Shield className="w-5 h-5" />
+                                    Explore Web Security Vulnerabilities
+                                </Link>
+                            </div>
+                        </motion.div>
                     )}
 
                 </div>

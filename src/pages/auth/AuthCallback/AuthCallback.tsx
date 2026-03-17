@@ -2,55 +2,73 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Loader2, AlertTriangle } from 'lucide-react';
 import { authService } from '@/services/auth.service';
+import { useAuth } from '@/contexts/AuthContext';
 
 /**
  * Auth Callback — handles OAuth redirect from backend.
- * Backend redirects here with ?token=xxx (success) or ?error=xxx (failure).
+ * Backend redirects here with ?token=xxx (base64 encoded, success) or ?error=xxx (failure).
  * After saving token, fetch user data then redirect ke halaman utama.
+ * 
+ * FLOW:
+ * 1. Parse URL params (token from backend)
+ * 2. Validate token is base64
+ * 3. Decode token using authService.handleOAuthCallback()
+ * 4. Token disimpan, user data di-fetch
+ * 5. Redirect ke home
  */
 export default function AuthCallback() {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const token = params.get('token');
-    const error = params.get('error');
+    const handleCallback = async () => {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const encodedToken = params.get('token');
+        const error = params.get('error');
+        const provider = params.get('provider') || 'unknown';
 
-    if (error) {
-      const msg = decodeURIComponent(error);
-      if (msg === 'google_not_configured') {
-        setErrorMsg('Google OAuth belum dikonfigurasi. Silakan hubungi administrator.');
-      } else if (msg === 'github_not_configured') {
-        setErrorMsg('GitHub OAuth belum dikonfigurasi. Silakan hubungi administrator.');
-      } else {
-        setErrorMsg(msg);
+        // ERROR dari OAuth provider
+        if (error) {
+          const msg = decodeURIComponent(error);
+          console.error(`OAuth Error (${provider}):`, msg);
+          setErrorMsg(msg);
+          setTimeout(() => navigate('/', { replace: true }), 3000);
+          return;
+        }
+
+        // TOKEN dari OAuth provider
+        if (encodedToken) {
+          try {
+            // Decode & validate token menggunakan authService
+            const user = await authService.handleOAuthCallback(encodedToken, provider);
+            
+            console.log(`✓ OAuth login successful via ${provider}`, user);
+            
+            // Redirect ke home setelah token & user tersimpan
+            setTimeout(() => navigate('/', { replace: true }), 500);
+            return;
+          } catch (tokenError) {
+            console.error('Token handling error:', tokenError);
+            setErrorMsg('Token tidak valid. Silakan coba login ulang.');
+            setTimeout(() => navigate('/', { replace: true }), 3000);
+            return;
+          }
+        }
+
+        // Tidak ada token maupun error — redirect ke home
+        console.warn('No token or error in callback');
+        navigate('/', { replace: true });
+      } catch (err) {
+        console.error('AuthCallback error:', err);
+        setErrorMsg('Terjadi kesalahan. Silakan coba lagi.');
+        setTimeout(() => navigate('/', { replace: true }), 3000);
       }
-      setTimeout(() => navigate('/', { replace: true }), 3000);
-      return;
-    }
+    };
 
-    if (token) {
-      // Simpan token ke localStorage
-      localStorage.setItem('auth_token', token);
-
-      // Fetch user data dari server supaya Navbar langsung update
-      authService.getCurrentUser()
-        .then(() => {
-          window.dispatchEvent(new Event('auth-login'));
-          navigate('/', { replace: true });
-        })
-        .catch(() => {
-          // Tetap redirect ke home meski gagal fetch user
-          window.dispatchEvent(new Event('auth-login'));
-          navigate('/', { replace: true });
-        });
-      return;
-    }
-
-    // Tidak ada token maupun error — redirect ke home
-    navigate('/', { replace: true });
-  }, [navigate]);
+    handleCallback();
+  }, [navigate, login]);
 
   if (errorMsg) {
     return (

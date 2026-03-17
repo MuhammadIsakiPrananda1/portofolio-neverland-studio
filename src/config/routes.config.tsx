@@ -20,6 +20,7 @@ export const Help = lazyLoad(() => import('@pages/public/Help'));
 export const Settings = lazyLoad(() => import('@pages/public/Settings'));
 export const Careers = lazyLoad(() => import('@pages/public/Careers'));
 export const SecurityGlossary = lazyLoad(() => import('@pages/public/SecurityGlossary'));
+export const WebSecurityVulnerabilities = lazyLoad(() => import('@pages/public/WebSecurityVulnerabilities'));
 export const NotFound = lazyLoad(() => import('@pages/public/NotFound'));
 
 // ─── Company pages ───────────────────────────────────────────────────────────
@@ -151,6 +152,7 @@ export const mainRoutes: RouteConfig[] = [
   { path: AppRoutes.CSR, element: CSR },
   { path: AppRoutes.PARTNER_PROGRAM, element: PartnerProgram },
   { path: AppRoutes.SECURITY_GLOSSARY, element: SecurityGlossary },
+  { path: AppRoutes.WEB_SECURITY_VULNERABILITIES, element: WebSecurityVulnerabilities },
   { path: AppRoutes.AWARDS, element: Awards },
   { path: AppRoutes.HELP, element: Help },
   { path: AppRoutes.SETTINGS, element: Settings },
@@ -205,19 +207,21 @@ export const serviceRoutes: RouteConfig[] = [
   { path: '/services/monitoring-maintenance', element: MonitoringMaintenance },
 ];
 
+import ProtectedRoute from '@/components/ProtectedRoute';
+
 // Dashboard routes configuration
 export const dashboardRoutes: RouteConfig[] = [
-  { path: '/dashboard', element: Dashboard },
-  { path: '/dashboard/projects', element: DashboardProjects },
-  { path: '/dashboard/analytics', element: DashboardAnalytics },
-  { path: '/dashboard/messages', element: DashboardMessages },
-  { path: '/dashboard/clients', element: DashboardClients },
-  { path: '/dashboard/reports', element: DashboardReports },
-  { path: '/dashboard/settings', element: DashboardSettings },
-  { path: '/dashboard/team', element: DashboardTeam },
-  { path: '/dashboard/services', element: DashboardServices },
-  { path: '/dashboard/tasks', element: DashboardTasks },
-  { path: '/dashboard/invoices', element: DashboardInvoices },
-  { path: '/dashboard/calendar', element: DashboardCalendar },
-  { path: '/dashboard/resources', element: DashboardResources },
+  { path: '/dashboard', element: () => <ProtectedRoute><Dashboard /></ProtectedRoute> },
+  { path: '/dashboard/projects', element: () => <ProtectedRoute><DashboardProjects /></ProtectedRoute> },
+  { path: '/dashboard/analytics', element: () => <ProtectedRoute><DashboardAnalytics /></ProtectedRoute> },
+  { path: '/dashboard/messages', element: () => <ProtectedRoute><DashboardMessages /></ProtectedRoute> },
+  { path: '/dashboard/clients', element: () => <ProtectedRoute><DashboardClients /></ProtectedRoute> },
+  { path: '/dashboard/reports', element: () => <ProtectedRoute><DashboardReports /></ProtectedRoute> },
+  { path: '/dashboard/settings', element: () => <ProtectedRoute><DashboardSettings /></ProtectedRoute> },
+  { path: '/dashboard/team', element: () => <ProtectedRoute><DashboardTeam /></ProtectedRoute> },
+  { path: '/dashboard/services', element: () => <ProtectedRoute><DashboardServices /></ProtectedRoute> },
+  { path: '/dashboard/tasks', element: () => <ProtectedRoute><DashboardTasks /></ProtectedRoute> },
+  { path: '/dashboard/invoices', element: () => <ProtectedRoute><DashboardInvoices /></ProtectedRoute> },
+  { path: '/dashboard/calendar', element: () => <ProtectedRoute><DashboardCalendar /></ProtectedRoute> },
+  { path: '/dashboard/resources', element: () => <ProtectedRoute><DashboardResources /></ProtectedRoute> },
 ];

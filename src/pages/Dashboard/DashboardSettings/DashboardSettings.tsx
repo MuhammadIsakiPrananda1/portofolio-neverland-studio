@@ -14,8 +14,10 @@ import {
   Phone,
   Sparkles,
 } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function DashboardSettings() {
+  const { user } = useAuth();
   const [isSaving, setIsSaving] = useState(false);
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
@@ -42,11 +44,11 @@ export default function DashboardSettings() {
 
   useEffect(() => {
     loadSettings();
-  }, []);
+  }, [user]);
 
   const loadSettings = () => {
-    const name = localStorage.getItem('dashboardUserName') || 'Admin Neverland';
-    const email = localStorage.getItem('dashboardUserEmail') || 'admin@neverland.studio';
+    const name = user?.name || 'Admin Neverland';
+    const email = user?.email || 'admin@neverland.studio';
     const savedProfile = localStorage.getItem('dashboardProfile');
 
     let company = '';

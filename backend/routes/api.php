@@ -1,6 +1,5 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\OAuthController;
 use App\Http\Controllers\Api\SessionController;
@@ -13,17 +12,25 @@ use App\Http\Controllers\Api\ClientController;
 use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\Api\AnalyticsController;
 use App\Http\Controllers\Api\SettingController;
+use App\Http\Controllers\Api\SettingsController;
 use App\Http\Controllers\Api\TeamMemberController;
 use App\Http\Controllers\Api\TestimonialController;
 use App\Http\Controllers\Api\PortfolioController;
 use App\Http\Controllers\Api\MediaController;
 use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\ChallengeController;
+use App\Http\Controllers\Api\ScoreboardController;
+use App\Http\Controllers\Api\VMController;
 
 /*
 |--------------------------------------------------------------------------
 | API Routes
 |--------------------------------------------------------------------------
 */
+
+// Test route
+Route::get('/api/test', function () { return 'test works with api'; });
+Route::get('/test', function () { return 'test works without api'; });
 
 // Health Check
 Route::get('/health', function () {
@@ -105,35 +112,27 @@ Route::prefix('v1')->group(function () {
     Route::get('/portfolio', [PortfolioController::class, 'index']);
     Route::get('/portfolio/{id}', [PortfolioController::class, 'show']);
     
-    // Virtual Machine Management (Public - Rate Limited)
-    Route::prefix('vm')->controller(\App\Http\Controllers\VMController::class)->group(function () {
-        Route::post('/start', 'start');                          // Start new VM container
-        Route::post('/{container}/stop', 'stop');                // Stop VM container
-        Route::get('/{container}/status', 'status');             // Get VM status
-        Route::post('/{container}/execute', 'execute');          // Execute command
-        Route::post('/{container}/extend', 'extend');            // Extend session
-        Route::get('/vpn-config', 'vpnConfig');                  // Get VPN connection info (rotating IP)
-        Route::get('/vpn-config/download', 'downloadVpnConfig'); // Download .ovpn config file
-    });
+    // Cyber News Proxy (Base64 Bypass for WAF)
+    Route::get('/cyber-news/fetch', [\App\Http\Controllers\Api\CyberNewsController::class, 'fetch']);
 });
 
 // Protected Routes (Authentication handled by Supabase on frontend)
 // TODO: Implement Supabase JWT verification middleware for additional backend security if needed
 Route::prefix('v1')->group(function () {
     
-    // User Settings
-    Route::prefix('settings')->controller(SettingController::class)->group(function () {
-        Route::get('/', 'index');                           // Get all settings
-        Route::put('/profile', 'updateProfile');            // Update profile
-        Route::post('/avatar', 'uploadAvatar');             // Upload avatar
-        Route::put('/social-media', 'updateSocialMedia');   // Update social media
+    // User Settings (profile, notifications, display, etc.)
+    Route::prefix('settings')->controller(SettingsController::class)->group(function () {
+        Route::get('/', 'index');                            // Get user settings
+        Route::put('/profile', 'updateProfile');             // Update profile
+        Route::post('/avatar', 'uploadAvatar');              // Upload avatar
+        Route::put('/social-media', 'updateSocialMedia');    // Update social media
         Route::put('/notifications', 'updateNotifications'); // Update notifications
-        Route::put('/privacy', 'updatePrivacy');            // Update privacy
-        Route::put('/display', 'updateDisplay');            // Update display preferences
-        Route::put('/password', 'updatePassword');          // Update password
-        Route::put('/email', 'updateEmail');                // Update email
-        Route::post('/2fa/enable', 'enableTwoFactor');      // Enable 2FA
-        Route::post('/2fa/disable', 'disableTwoFactor');    // Disable 2FA
+        Route::put('/privacy', 'updatePrivacy');             // Update privacy
+        Route::put('/display', 'updateDisplay');             // Update display preferences
+        Route::put('/password', 'updatePassword');           // Update password
+        Route::put('/email', 'updateEmail');                 // Update email
+        Route::post('/2fa/enable', 'enableTwoFactor');       // Enable 2FA
+        Route::post('/2fa/disable', 'disableTwoFactor');     // Disable 2FA
     });
 
     // Dashboard Real-time
@@ -214,15 +213,51 @@ Route::prefix('v1')->group(function () {
     Route::put('/testimonials/{id}', [TestimonialController::class, 'update']);
     Route::delete('/testimonials/{id}', [TestimonialController::class, 'destroy']);
 
-    // Settings Management
-    // TODO: Add Supabase-based authorization checks
-    Route::get('/settings', [SettingController::class, 'index']);
-    Route::get('/settings/{key}', [SettingController::class, 'show']);
-    Route::put('/settings/{key}', [SettingController::class, 'update']);
-    Route::post('/settings', [SettingController::class, 'store']);
+    // Settings CRUD (app-level settings, separate from user settings)
+    Route::prefix('app-settings')->controller(SettingController::class)->group(function () {
+        Route::get('/', 'index');
+        Route::post('/', 'store');
+        Route::get('/{key}', 'show');
+        Route::put('/{key}', 'update');
+    });
 
     // Media Management
     Route::post('/media/upload', [MediaController::class, 'upload']);
     Route::delete('/media/{id}', [MediaController::class, 'destroy']);
     Route::get('/media', [MediaController::class, 'index']);
+
+    // Challenge Management & CTF (Public endpoints for listing)
+    Route::prefix('challenges')->controller(ChallengeController::class)->group(function () {
+        Route::get('/', 'index');                           // Get all challenges with filter
+        Route::get('/{challenge}', 'show');                 // Get challenge details
+        
+        // Protected endpoints
+        Route::middleware('auth:sanctum')->group(function () {
+            Route::post('/submit', 'submitFlag');           // Submit flag for verification
+            Route::get('/user/solved', 'getSolvedChallenges'); // Get user's solved challenges
+            Route::get('/user/progress', 'getUserProgress'); // Get user progress
+            Route::get('/user/stats', 'getUserStats');      // Get user statistics
+        });
+    });
+
+    // Scoreboard & Leaderboard (Public)
+    Route::prefix('scoreboard')->controller(ScoreboardController::class)->group(function () {
+        Route::get('/', 'getScoreboard');                   // Get global scoreboard/leaderboard
+        Route::get('/top', 'getScoreboard');                // Top users
+        Route::get('/user/{userId}', 'getUserRank');       // Get specific user rank
+        Route::get('/category/{category}', 'getCategoryLeaderboard'); // Category leaderboard
+        Route::get('/first-blood', 'getFirstBloodLeaderboard'); // First blood leaderboard
+        Route::get('/stats', 'getChallengeStats');          // Challenge statistics
+    });
+
+    // Virtual Machine Lab (Protected - requires authentication)
+    Route::prefix('vm')->controller(VMController::class)->middleware('auth:sanctum')->group(function () {
+        Route::get('/status', 'getStatus');                 // Get VM status
+        Route::post('/start', 'start');                     // Start new VM or restart existing
+        Route::post('/stop', 'stop');                       // Stop running VM
+        Route::get('/connect-url', 'getConnectUrl');        // Get noVNC connection URL
+        Route::delete('/delete', 'delete');                 // Delete VM completely
+        Route::get('/logs', 'getLogs');                     // Get container logs (debugging)
+        Route::post('/update-activity', 'updateActivity');  // Update activity for idle tracking
+    });
 });

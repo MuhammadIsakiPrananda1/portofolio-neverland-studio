@@ -57,12 +57,13 @@ import {
   Rocket,
   GraduationCap,
   Trophy,
+  AlertTriangle,
 } from "lucide-react";
 import Logo from "@components/atoms/Logo";
 import AuthModal from "@components/organisms/AuthModal";
 import { Routes } from "@config/constants";
 import logoImage from "@/assets/logo.webp";
-import { useAuthState } from "@/hooks/useAuthState";
+import { useAuth } from "@/contexts/AuthContext";
 import { authService } from "@/services/auth.service";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -312,6 +313,7 @@ const hubItems: NavItem[] = [
       { path: Routes.PLAYGROUND_CVE, label: "CVE Lab", icon: Bug },
       { path: Routes.PLAYGROUND_VM, label: "Virtual Machine", icon: CloudCog },
       { path: Routes.SECURITY_GLOSSARY, label: "Security Glossary", icon: BookMarked },
+      { path: Routes.WEB_SECURITY_VULNERABILITIES, label: "Web Vulnerabilities", icon: AlertTriangle },
       {
         path: "#security-categories",
         label: "Security Categories",
@@ -769,7 +771,7 @@ export default function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
-  const { isAuthenticated } = useAuthState();
+  const { isAuthenticated } = useAuth();
   const location = useLocation();
 
   // ── Notify external consumers when the mobile drawer opens / closes ─────────

@@ -18,8 +18,12 @@ const api = axios.create({
 // Add token to requests if available
 api.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    const token = localStorage.getItem('auth_token');
+    let token = localStorage.getItem('auth_token');
     if (token) {
+      if (token.includes('|')) {
+        token = btoa(token);
+        localStorage.setItem('auth_token', token);
+      }
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
@@ -191,6 +195,31 @@ class AuthService {
       password_confirmation: newPassword,
     });
     return response.data;
+  }
+
+  /**
+   * Handle OAuth callback (token di-base64 encode dari backend)
+   */
+  async handleOAuthCallback(encodedToken: string, provider: string): Promise<User> {
+    try {
+      // Decode base64 token dari backend
+      const token = atob(encodedToken);
+
+      // Store token
+      localStorage.setItem('auth_token', token);
+
+      // Fetch user data dengan token baru
+      const user = await this.getCurrentUser();
+
+      // Trigger auth-login event
+      window.dispatchEvent(new Event('auth-login'));
+
+      console.log(`✓ OAuth login successful via ${provider}`);
+      return user;
+    } catch (error) {
+      console.error('OAuth callback error:', error);
+      throw new Error('Failed to process OAuth callback');
+    }
   }
 
   /**

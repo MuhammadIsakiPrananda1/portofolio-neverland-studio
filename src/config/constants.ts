@@ -56,6 +56,7 @@ export enum Routes {
   PLAYGROUND_LEARNING_TOOLS = "/playground/learning/tools",
   PLAYGROUND_LEARNING_ROADMAP = "/playground/learning/roadmap",
   LEARNING_PATH = "/learning-path",
+  WEB_SECURITY_VULNERABILITIES = "/web-security-vulnerabilities",
   CONTACT = "/contact",
   TEAM = "/team",
   CAREERS = "/company/careers",

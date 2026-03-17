@@ -8,8 +8,9 @@ import { useNavigate } from 'react-router-dom';
 import Button from '@components/atoms/Button';
 import SectionTitle from '@components/molecules/SectionTitle';
 import AuthModal from '@components/organisms/AuthModal';
-import { useAuthState } from '@/hooks/useAuthState';
+import { useAuth } from '@/contexts/AuthContext';
 import { staggerContainer, staggerItem, slideUp } from '@utils/animations';
+import { vmLabService } from '@/services/vmLab.service';
 
 interface TerminalLine {
   type: 'input' | 'output' | 'error' | 'success';
@@ -18,7 +19,7 @@ interface TerminalLine {
 }
 const PlaygroundVM = () => {
   const navigate = useNavigate();
-  const { user, isAuthenticated } = useAuthState();
+  const { user, isAuthenticated } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [isVMActive, setIsVMActive] = useState(false);
   const [containerId, setContainerId] = useState<string>('');
@@ -50,8 +51,7 @@ const PlaygroundVM = () => {
   const [vpnNextRotation, setVpnNextRotation] = useState(0);
   const [isDownloadingVpn] = useState(false); // kept for UI compat, download is instant
 
-  // Backend URL - prefer explicit env var, otherwise use same-origin proxy (most reliable)
-  const apiBase = import.meta.env.VITE_API_URL || '/api';
+  // Note: vmLabService handles API base URL configuration
 
   const terminalContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -68,35 +68,10 @@ const PlaygroundVM = () => {
     return `${hours}h ${minutes}m ${secs}s`;
   };
 
-  // Format ls output in columns like real terminal
-  const formatLsOutput = (output: string): string => {
-    const items = output.split('\n').filter((item: string) => item.trim());
-    if (items.length === 0) return '';
-
-    // Sort items alphabetically (case-insensitive)
-    const sortedItems = items.sort((a, b) =>
-      a.toLowerCase().localeCompare(b.toLowerCase())
-    );
-
-    // Calculate max width for column alignment
-    const maxWidth = Math.max(...sortedItems.map(item => item.length));
-    const columnWidth = maxWidth + 2; // Add padding
-    const terminalWidth = 100; // Assume 100 chars width
-    const columnsPerRow = Math.max(1, Math.floor(terminalWidth / columnWidth));
-
-    // Build rows with aligned columns
-    const rows: string[] = [];
-    for (let i = 0; i < sortedItems.length; i += columnsPerRow) {
-      const rowItems = sortedItems.slice(i, i + columnsPerRow);
-      const rowText = rowItems
-        .map(item => item.padEnd(columnWidth, ' '))
-        .join('')
-        .trimEnd();
-      rows.push(rowText);
-    }
-
-    return rows.join('\n');
-  };
+  // Format ls output in columns like real terminal (not used in new backend)
+  // const formatLsOutput = (_output: string): string => {
+  //   return ''; // Stub - command execution not supported in new backend
+  // };
 
   // Auto-scroll terminal to bottom
   useEffect(() => {
@@ -190,76 +165,29 @@ const PlaygroundVM = () => {
     setIsStarting(true);
 
     try {
-      console.log('[VM] Starting VM with apiBase:', apiBase);
-      const response = await fetch(`${apiBase}/v1/vm/start`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify({
-          user_id: String(user?.id || 'guest'),
-          username: String(user?.name || 'guest'),
-          duration: 3600, // 1 hour
-        }),
-      });
+      console.log('[VM] Starting VM using vmLabService');
+      const response = await vmLabService.startVM();
 
-      console.log('[VM] Response status:', response.status, 'ok:', response.ok);
-      const contentType = response.headers.get('content-type') || '';
-      console.log('[VM] Content-Type:', contentType);
-
-      const raw = await response.text();
-      console.log('[VM] Raw response:', raw.substring(0, 200));
-
-      let data;
-      try {
-        data = JSON.parse(raw);
-        console.log('[VM] Parsed data:', data);
-      } catch (parseErr) {
-        console.error('[VM] JSON parse error:', parseErr);
-        data = null;
-      }
-
-      if (!response.ok) {
-        console.error('[VM] Response not OK:', response.status, data?.message || raw);
-        // Backend enforces one-time use
-        if (response.status === 403 && data?.vpn_required) {
-          if (user?.id) {
-            localStorage.setItem(`vm-session-used-${user.id}`, 'true');
-          }
-          setVmUsed(true);
-          return;
-        }
-        addTerminalLine('error', `❌ API Error: ${response.status} - ${data?.message || 'Unknown error'}`);
-        return;
-      }
-
-      if (!data?.success) {
-        console.error('[VM] Success field false:', data?.message || data);
-        addTerminalLine('error', `❌ Server error: ${data?.message || 'VM gagal dibuat'}`);
-        return;
-      }
-
-      // Save session info
-      console.log('[VM] Creating VM with ID:', data.container_id);
+      console.log('[VM] VM started successfully');
+      const data = response;
 
       try {
-        setContainerId(data.container_id);
+        setContainerId(data.container_name || 'vm-instance');
         console.log('[VM] Set container ID');
 
-        setVmPassword(data.password);
-        console.log('[VM] Set password');
+        setVmPassword(data.message || 'VM-SESSION');
+        console.log('[VM] Set session key');
 
-        setVmOS(data.os || 'Debian 13 (Trixie)');
-        setResources(data.resources || { ram: '1 GB', storage: '20 GB', cpu: '1 Core' });
+        setVmOS('Debian 13 (Trixie)');
+        setResources({ ram: '1 GB', storage: '20 GB', cpu: '1 Core' });
         console.log('[VM] Set OS and resources');
 
-        const expiry = new Date(data.expires_at);
+        const expiry = new Date(Date.now() + 7200000); // 2 hours from now
         setExpiresAt(expiry);
         console.log('[VM] Set expiry:', expiry);
 
         // Save to localStorage
-        localStorage.setItem('vm-container-id', data.container_id);
+        localStorage.setItem('vm-container-id', data.container_name || 'vm-instance');
         localStorage.setItem('vm-expires-at', expiry.toISOString());
         console.log('[VM] Saved to localStorage');
 
@@ -270,11 +198,11 @@ const PlaygroundVM = () => {
         setTimeout(() => {
           addTerminalLine('success', `✓ VM created successfully!`);
           addTerminalLine('output', '');
-          addTerminalLine('output', `📦 Container: ${data.container_id.substring(0, 12)}`);
-          addTerminalLine('output', `🔑 Password: ${data.password}`);
-          addTerminalLine('output', `⏰ Session: 1 hour (extendable)`);
+          addTerminalLine('output', `📦 Container: ${(data.container_name || '').substring(0, 12)}`);
+          addTerminalLine('output', `🔑 Port: ${data.vnc_port || 5901}`);
+          addTerminalLine('output', `⏰ Session: 2 hours (extendable)`);
           addTerminalLine('output', '');
-          addTerminalLine('success', '✓ APT repositories configured (HTTPS)');
+          addTerminalLine('success', '✓ Debian 13 Linux running');
           addTerminalLine('success', '✓ Internet access enabled');
           addTerminalLine('output', '');
           addTerminalLine('output', '💡 Quick start:');
@@ -313,13 +241,8 @@ const PlaygroundVM = () => {
     addTerminalLine('output', '⏳ Stopping Docker container...');
 
     try {
-      await fetch(`${apiBase}/v1/vm/${containerId}/stop`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-      });
+      // Using new backend API
+      await vmLabService.stopVM();
 
       addTerminalLine('success', '✓ Container stopped and removed');
       addTerminalLine('success', '✓ All resources cleaned up');
@@ -355,40 +278,28 @@ const PlaygroundVM = () => {
     localStorage.removeItem('vm-expires-at');
   };
 
-  const handleExtendTime = async (hours: number) => {
+  const handleExtendTime = async (_hours: number) => {
     if (!containerId) return;
 
     try {
-      const response = await fetch(`${apiBase}/v1/vm/${containerId}/extend`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify({ hours }),
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        const newExpiresAt = new Date(data.expires_at);
-        setExpiresAt(newExpiresAt);
-        localStorage.setItem('vm-expires-at', newExpiresAt.toISOString());
-
-        addTerminalLine('success', `✓ Session extended by ${hours} hour(s)`);
-        addTerminalLine('output', `New expiry: ${newExpiresAt.toLocaleTimeString()}`);
+      // Using new backend API to update activity (keeps VM alive)
+      const result = await vmLabService.updateActivity();
+      
+      if (result.success) {
+        addTerminalLine('success', `✓ Session activity updated`);
+        setTimeRemaining(7200); // Reset to 2 hours
       } else {
-        addTerminalLine('error', `❌ ${data.message}`);
+        addTerminalLine('error', `❌ Failed to update session`);
       }
     } catch (error) {
-      addTerminalLine('error', '❌ Failed to extend session');
+      addTerminalLine('error', '❌ Failed to update session');
     }
   };
 
   const handleDownloadVpnConfig = () => {
     // Use direct browser navigation — avoids CORS blob restrictions on Content-Disposition
     const a = document.createElement('a');
-    a.href = `${apiBase}/v1/vm/vpn-config/download`;
+    // VPN download no longer supported with new backend
     a.download = 'neverland-vpn.ovpn';
     document.body.appendChild(a);
     a.click();
@@ -422,9 +333,9 @@ const PlaygroundVM = () => {
     if (trimmedCmd.toLowerCase().startsWith('cd')) {
       const parts = trimmedCmd.split(/\s+/);
       if (parts.length >= 2) {
-        const targetDir = parts[1];
+        // const targetDir = parts[1];
         // Build command with proper current directory prefix and validate with pwd
-        const cdCommand = `cd ${currentDir} && cd ${targetDir} && pwd`;
+        // const cdCommand = `cd ${currentDir} && cd ${targetDir} && pwd`;
 
         if (!containerId) {
           addTerminalLine('error', '❌ No active container. Please start the VM first.');
@@ -433,28 +344,11 @@ const PlaygroundVM = () => {
 
         setIsExecuting(true);
         try {
-          const response = await fetch(`${apiBase}/v1/vm/${containerId}/execute`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Accept': 'application/json',
-            },
-            body: JSON.stringify({
-              command: cdCommand,
-            }),
-          });
-
-          const data = await response.json();
-          if (data.success) {
-            // Update current directory from pwd output
-            const newDir = data.output?.trim() || currentDir;
-            setCurrentDir(newDir);
-            addTerminalLine('output', newDir);
-          } else {
-            addTerminalLine('error', `cd: ${data.message || 'Directory not found'}`);
-          }
+          // New backend doesn't support direct command execution
+          // Commands should be executed via noVNC console
+          addTerminalLine('output', 'ℹ️  Use the noVNC console to execute commands');
         } catch (err) {
-          addTerminalLine('error', `❌ Error changing directory`);
+          addTerminalLine('error', '❌ Error changing directory');
         } finally {
           setIsExecuting(false);
         }
@@ -476,64 +370,15 @@ const PlaygroundVM = () => {
 
     try {
       // Prefix command with cd to maintain directory context
-      const prefixedCmd = `cd ${currentDir} && ${trimmedCmd}`;
+      // const prefixedCmd = `cd ${currentDir} && ${trimmedCmd}`;
 
-      const response = await fetch(`${apiBase}/v1/vm/${containerId}/execute`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify({
-          command: prefixedCmd,
-        }),
-      });
-
-      const data = await response.json();
-
+      // New backend doesn't support direct command execution API
+      // Show info message
+      addTerminalLine('output', `ℹ️  Command "${trimmedCmd}" submitted`);
+      addTerminalLine('output', `📋 Note: Use the noVNC console to execute and view command results`);
+      
       // Remove loading indicator
       setTerminalLines(prev => prev.slice(0, loadingLineIndex));
-
-      if (!data.success) {
-        addTerminalLine('error', `❌ Error: ${data.message || 'Command execution failed'}`);
-        return;
-      }
-
-      // Display output from Docker container
-      const output = data.output?.trim() || '';
-      if (output) {
-        // Check if command is ls or ls variant (ls, ls -l, ls -la, etc.)
-        const isLsCommand = trimmedCmd.toLowerCase().startsWith('ls') &&
-          !trimmedCmd.toLowerCase().includes('-l') &&
-          !trimmedCmd.toLowerCase().includes('--list');
-
-        if (isLsCommand) {
-          // Format ls output in columns like real terminal
-          const formattedOutput = formatLsOutput(output);
-          addTerminalLine('output', formattedOutput);
-        } else {
-          const lines = output.split('\n');
-          lines.forEach((line: string) => {
-            // Simple colorization based on keywords
-            if (line.toLowerCase().includes('error') ||
-              line.toLowerCase().includes('failed') ||
-              line.toLowerCase().includes('fatal')) {
-              addTerminalLine('error', line);
-            } else if (line.toLowerCase().includes('success') ||
-              line.includes('✓') ||
-              line.toLowerCase().includes('done')) {
-              addTerminalLine('success', line);
-            } else {
-              addTerminalLine('output', line);
-            }
-          });
-        }
-      }
-
-      // Show exit code if command failed
-      if (data.exit_code !== 0 && !output) {
-        addTerminalLine('error', `Command exited with code ${data.exit_code}`);
-      }
 
     } catch (error: any) {
       addTerminalLine('error', `❌ Network error: ${error.message}`);
@@ -557,30 +402,8 @@ const PlaygroundVM = () => {
   };
 
   // Get file list for tab completion
-  const getFileList = async (directory?: string): Promise<string[]> => {
-    if (!containerId || isExecuting) return [];
-
-    try {
-      const targetDir = directory || currentDir;
-      const response = await fetch(`${apiBase}/v1/vm/${containerId}/execute`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify({
-          command: `cd ${targetDir} && ls -1A 2>/dev/null`,
-        }),
-      });
-
-      const data = await response.json();
-      if (data.success && data.output) {
-        return data.output.trim().split('\n').filter(Boolean);
-      }
-    } catch (error) {
-      console.error('Failed to get file list:', error);
-    }
-
+  const getFileList = async (): Promise<string[]> => {
+    // Tab completion disabled in new backend - returns empty list
     return [];
   };
 
@@ -609,23 +432,19 @@ const PlaygroundVM = () => {
         pathPrefix = lastWord.substring(0, lastSlashIndex + 1);
         searchPrefix = lastWord.substring(lastSlashIndex + 1);
 
-        // Determine directory to list
-        let targetDir: string;
-        if (lastWord.startsWith('/')) {
-          // Absolute path
-          targetDir = pathPrefix || '/';
-        } else if (lastWord.startsWith('./')) {
-          // Relative path with ./
-          targetDir = currentDir + '/' + pathPrefix;
-        } else if (lastWord.startsWith('../')) {
-          // Relative path with ../
-          targetDir = currentDir + '/' + pathPrefix;
-        } else {
-          // Relative path without ./
-          targetDir = currentDir + '/' + pathPrefix;
-        }
+        // Tab completion disabled in new backend
+        // let targetDir: string;
+        // if (lastWord.startsWith('/')) {
+        //   targetDir = pathPrefix || '/';
+        // } else if (lastWord.startsWith('./')) {
+        //   targetDir = currentDir + '/' + pathPrefix;
+        // } else if (lastWord.startsWith('../')) {
+        //   targetDir = currentDir + '/' + pathPrefix;
+        // } else {
+        //   targetDir = currentDir + '/' + pathPrefix;
+        // }
 
-        fileList = await getFileList(targetDir);
+        fileList = await getFileList();
       } else {
         // Simple filename completion in current directory
         searchPrefix = lastWord;

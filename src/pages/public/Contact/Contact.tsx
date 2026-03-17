@@ -100,11 +100,11 @@ export default function Contact() {
               variants={staggerItem}
             >
               <div className="absolute top-0 right-0 w-16 h-16 bg-red-500/10 rounded-full blur-xl pointer-events-none" />
-              <div className="flex items-center gap-3 mb-4">
-                <Globe className="w-5 h-5 text-red-500" />
-                <h3 className="font-black uppercase tracking-tight text-white">Global Reach</h3>
+              <div className="flex items-center gap-3 mb-3">
+                <Globe className="w-4 h-4 text-red-500" />
+                <h3 className="font-bold text-sm uppercase tracking-tight text-white">Global Reach</h3>
               </div>
-              <p className="text-sm text-slate-400 font-medium mb-4">
+              <p className="text-xs text-slate-400 font-medium mb-3">
                 We work with clients worldwide. Our team is distributed across multiple time zones to ensure 24/7 coverage.
               </p>
               <div className="flex items-center gap-2 text-xs font-bold font-mono text-red-400 uppercase tracking-wider">
@@ -140,10 +140,11 @@ export default function Contact() {
                       width="100%" 
                       height="100%" 
                       style={{ border: 0 }} 
-                      allowFullScreen 
+                      allowFullScreen={true}
                       loading="lazy" 
                       referrerPolicy="no-referrer-when-downgrade"
-                      title="SMKN 6 Malang Map"
+                      title="SMKN 6 Malang Location Map"
+                      sandbox="allow-same-origin allow-scripts allow-popups"
                       className="rounded-sm grayscale hover:grayscale-0 transition-all duration-500"
                     />
                   </div>

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Download, RefreshCw, Wifi } from 'lucide-react';
-import { useAuthState } from '@/hooks/useAuthState';
+import { useAuth } from '@/contexts/AuthContext';
 import AuthModal from '@components/organisms/AuthModal';
 
 interface VpnInfo {
@@ -25,7 +25,7 @@ const PROTOCOLS = [
 ];
 
 const PlaygroundOVPN = () => {
-  const { user } = useAuthState();
+  const { user } = useAuth();
   const [vpnInfo, setVpnInfo]         = useState<VpnInfo | null>(null);
   const [isLoading, setIsLoading]     = useState(true);
   const [selectedServer, setSelectedServer] = useState('nl-vps-01');

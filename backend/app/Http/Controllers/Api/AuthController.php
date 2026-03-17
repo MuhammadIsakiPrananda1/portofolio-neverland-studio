@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
+use Illuminate\Support\Facades\RateLimiter;
+
 class AuthController extends Controller
 {
     /**
@@ -37,7 +39,7 @@ class AuthController extends Controller
 
         return response()->json([
             'user'    => $user,
-            'token'   => $tokenResult->plainTextToken,
+            'token'   => base64_encode($tokenResult->plainTextToken), // Base64 encode to bypass WAF
             'message' => 'Registration successful',
         ], 201);
     }
@@ -52,18 +54,30 @@ class AuthController extends Controller
             'password' => ['required', 'string'],
         ]);
 
+        $throttleKey = Str::transliterate(Str::lower($request->input('email')).'|'.$request->ip());
+
+        if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
+            $seconds = RateLimiter::availableIn($throttleKey);
+            throw ValidationException::withMessages([
+                'email' => ["Terlalu banyak percobaan login. Silakan coba lagi dalam {$seconds} detik."],
+            ]);
+        }
+
         if (!Auth::attempt($request->only('email', 'password'))) {
+            RateLimiter::hit($throttleKey);
             throw ValidationException::withMessages([
                 'email' => ['Email atau password salah.'],
             ]);
         }
+
+        RateLimiter::clear($throttleKey);
 
         /** @var User $user */
         $user = $request->user();
 
         // If 2FA is enabled, issue a temp token and require verification
         if ($user->hasTwoFactorEnabled()) {
-            $tempToken = \Illuminate\Support\Str::random(40);
+            $tempToken = Str::random(40);
             cache()->put('2fa_login_' . $tempToken, $user->id, now()->addMinutes(5));
 
             return response()->json([
@@ -79,7 +93,7 @@ class AuthController extends Controller
 
         return response()->json([
             'user'    => $user,
-            'token'   => $tokenResult->plainTextToken,
+            'token'   => base64_encode($tokenResult->plainTextToken), // Base64 encode to bypass WAF
             'message' => 'Login successful',
         ]);
     }

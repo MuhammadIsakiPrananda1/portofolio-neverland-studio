@@ -7,7 +7,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
-use GuzzleHttp\Client;
+use Laravel\Socialite\Facades\Socialite;
 
 class OAuthController extends Controller
 {
@@ -24,63 +24,58 @@ class OAuthController extends Controller
 
     public function redirectToGoogle()
     {
-        $clientId = config('services.google.client_id');
-
-        if (empty($clientId)) {
-            return redirect($this->frontendUrl . '/auth/callback?error=google_not_configured');
+        // Validate that Google OAuth is configured using config()
+        if (!config('services.google.client_id') || !config('services.google.client_secret')) {
+            return redirect($this->frontendUrl . '/auth/callback?error=' . urlencode('Google OAuth belum dikonfigurasi. Hubungi administrator.'));
         }
-
-        $params = http_build_query([
-            'client_id'     => $clientId,
-            'redirect_uri'  => config('services.google.redirect'),
-            'response_type' => 'code',
-            'scope'         => 'openid email profile',
-            'access_type'   => 'online',
-            'state'         => Str::random(32),
-        ]);
-
-        return redirect('https://accounts.google.com/o/oauth2/v2/auth?' . $params);
+        
+        try {
+            return Socialite::driver('google')->stateless()->redirect();
+        } catch (\Throwable $e) {
+            \Log::error('Google OAuth redirect error: ' . $e->getMessage());
+            return redirect($this->frontendUrl . '/auth/callback?error=' . urlencode('Gagal menginisiasi Google login. Coba lagi.'));
+        }
     }
 
     public function handleGoogleCallback(Request $request)
     {
         if ($request->has('error')) {
-            return redirect($this->frontendUrl . '/auth/callback?error=' . urlencode($request->error));
+            $error = $request->error_description ?? $request->error;
+            \Log::warning('Google OAuth error: ' . $error);
+            return redirect($this->frontendUrl . '/auth/callback?error=' . urlencode('Google login ditolak: ' . $error));
         }
 
         try {
-            $http = new Client(['timeout' => 10]);
+            /** @var \Laravel\Socialite\Two\User $googleUser */
+            $googleUser = Socialite::driver('google')->stateless()->user();
 
-            // Exchange code for access token
-            $tokenResponse = $http->post('https://oauth2.googleapis.com/token', [
-                'form_params' => [
-                    'code'          => $request->code,
-                    'client_id'     => config('services.google.client_id'),
-                    'client_secret' => config('services.google.client_secret'),
-                    'redirect_uri'  => config('services.google.redirect'),
-                    'grant_type'    => 'authorization_code',
-                ],
-            ]);
-
-            $tokenData = json_decode($tokenResponse->getBody(), true);
-
-            // Get user info
-            $userResponse = $http->get('https://www.googleapis.com/oauth2/v3/userinfo', [
-                'headers' => ['Authorization' => 'Bearer ' . $tokenData['access_token']],
-            ]);
-
-            $googleUser = json_decode($userResponse->getBody(), true);
+            $email = $googleUser->getEmail();
+            if (empty($email)) {
+                \Log::warning('Google OAuth: No email received');
+                return redirect($this->frontendUrl . '/auth/callback?error=' . urlencode('Tidak dapat mengambil email dari Google.'));
+            }
 
             $token = $this->findOrCreateUser(
-                $googleUser['email'],
-                $googleUser['name'] ?? explode('@', $googleUser['email'])[0],
-                'google'
+                $email,
+                $googleUser->getName() ?? explode('@', $email)[0],
+                'google',
+                $googleUser->getId(),
+                $googleUser->getAvatar()
             );
 
-            return redirect($this->frontendUrl . '/auth/callback?token=' . $token . '&provider=google');
+            return redirect($this->frontendUrl . '/auth/callback?token=' . base64_encode($token) . '&provider=google');
 
         } catch (\Throwable $e) {
-            return redirect($this->frontendUrl . '/auth/callback?error=' . urlencode('Google login gagal: ' . $e->getMessage()));
+            \Log::error('Google OAuth callback error: ' . $e->getMessage());
+            $errorMsg = 'Google login gagal. Coba lagi atau hubungi administrator.';
+            if (str_contains($e->getMessage(), 'UnableToRetrieveAccessToken')) {
+                $errorMsg = 'Google: Kode akses tidak valid. Coba login lagi.';
+            } elseif (str_contains($e->getMessage(), 'invalid_client')) {
+                $errorMsg = 'Google: Konfigurasi tidak valid. Hubungi administrator.';
+            } elseif (str_contains($e->getMessage(), 'invalid_grant')) {
+                $errorMsg = 'Google: Akses ditolak. Coba login lagi.';
+            }
+            return redirect($this->frontendUrl . '/auth/callback?error=' . urlencode($errorMsg));
         }
     }
 
@@ -90,86 +85,71 @@ class OAuthController extends Controller
 
     public function redirectToGithub()
     {
-        $clientId = config('services.github.client_id');
-
-        if (empty($clientId)) {
-            return redirect($this->frontendUrl . '/auth/callback?error=github_not_configured');
+        // Validate that GitHub OAuth is configured using config()
+        if (!config('services.github.client_id') || !config('services.github.client_secret')) {
+            return redirect($this->frontendUrl . '/auth/callback?error=' . urlencode('GitHub OAuth belum dikonfigurasi. Hubungi administrator.'));
         }
-
-        $params = http_build_query([
-            'client_id'    => $clientId,
-            'redirect_uri' => config('services.github.redirect'),
-            'scope'        => 'user:email',
-            'state'        => Str::random(32),
-        ]);
-
-        return redirect('https://github.com/login/oauth/authorize?' . $params);
+        
+        try {
+            return Socialite::driver('github')->stateless()->redirect();
+        } catch (\Throwable $e) {
+            \Log::error('GitHub OAuth redirect error: ' . $e->getMessage());
+            return redirect($this->frontendUrl . '/auth/callback?error=' . urlencode('Gagal menginisiasi GitHub login. Coba lagi.'));
+        }
     }
 
     public function handleGithubCallback(Request $request)
     {
         if ($request->has('error')) {
-            return redirect($this->frontendUrl . '/auth/callback?error=' . urlencode($request->error_description ?? $request->error));
+            $error = $request->error_description ?? $request->error;
+            \Log::warning('GitHub OAuth error: ' . $error);
+            return redirect($this->frontendUrl . '/auth/callback?error=' . urlencode('GitHub login ditolak: ' . $error));
         }
 
         try {
-            $http = new Client(['timeout' => 10]);
-
-            // Exchange code for access token
-            $tokenResponse = $http->post('https://github.com/login/oauth/access_token', [
-                'headers'     => ['Accept' => 'application/json'],
-                'form_params' => [
-                    'client_id'     => config('services.github.client_id'),
-                    'client_secret' => config('services.github.client_secret'),
-                    'code'          => $request->code,
-                    'redirect_uri'  => config('services.github.redirect'),
-                ],
-            ]);
-
-            $tokenData = json_decode($tokenResponse->getBody(), true);
-
-            // Get user info
-            $userResponse = $http->get('https://api.github.com/user', [
-                'headers' => [
-                    'Authorization' => 'Bearer ' . $tokenData['access_token'],
-                    'User-Agent'    => 'NeverlandStudio/1.0',
-                ],
-            ]);
-
-            $githubUser = json_decode($userResponse->getBody(), true);
-
-            // GitHub email can be null — fetch primary email separately
-            $email = $githubUser['email'];
+            /** @var \Laravel\Socialite\Two\User $githubUser */
+            $githubUser = Socialite::driver('github')->stateless()->user();
+            
+            $email = $githubUser->getEmail();
             if (empty($email)) {
-                $emailsResponse = $http->get('https://api.github.com/user/emails', [
-                    'headers' => [
-                        'Authorization' => 'Bearer ' . $tokenData['access_token'],
-                        'User-Agent'    => 'NeverlandStudio/1.0',
-                    ],
-                ]);
-                $emails = json_decode($emailsResponse->getBody(), true);
-                foreach ($emails as $e) {
-                    if ($e['primary'] && $e['verified']) {
-                        $email = $e['email'];
-                        break;
-                    }
+                \Log::warning('GitHub OAuth: Attempting to fetch email from GitHub API');
+                // Try to fetch email from GitHub API
+                $response = $githubUser->getResponse();
+                $client = new \GuzzleHttp\Client();
+                try {
+                    $emailResponse = $client->get('https://api.github.com/user/emails', [
+                        'headers' => ['Authorization' => 'Bearer ' . $githubUser->token]
+                    ]);
+                    $emails = json_decode($emailResponse->getBody(), true);
+                    $email = collect($emails)->firstWhere('primary')['email'] ?? ($emails[0]['email'] ?? null);
+                } catch (\Exception $e) {
+                    \Log::error('Failed to fetch GitHub email: ' . $e->getMessage());
                 }
-            }
 
-            if (empty($email)) {
-                return redirect($this->frontendUrl . '/auth/callback?error=' . urlencode('Tidak dapat mengambil email dari GitHub.'));
+                if (empty($email)) {
+                    return redirect($this->frontendUrl . '/auth/callback?error=' . urlencode('Tidak dapat mengambil email dari GitHub. Pastikan email Anda public di GitHub settings.'));
+                }
             }
 
             $token = $this->findOrCreateUser(
                 $email,
-                $githubUser['name'] ?? $githubUser['login'],
-                'github'
+                $githubUser->getName() ?? $githubUser->getNickname() ?? 'GitHub User',
+                'github',
+                $githubUser->getId(),
+                $githubUser->getAvatar()
             );
 
-            return redirect($this->frontendUrl . '/auth/callback?token=' . $token . '&provider=github');
+            return redirect($this->frontendUrl . '/auth/callback?token=' . base64_encode($token) . '&provider=github');
 
         } catch (\Throwable $e) {
-            return redirect($this->frontendUrl . '/auth/callback?error=' . urlencode('GitHub login gagal: ' . $e->getMessage()));
+            \Log::error('GitHub OAuth callback error: ' . $e->getMessage());
+            $errorMsg = 'GitHub login gagal. Coba lagi atau hubungi administrator.';
+            if (str_contains($e->getMessage(), 'UnableToRetrieveAccessToken')) {
+                $errorMsg = 'GitHub: Kode akses tidak valid. Coba login lagi.';
+            } elseif (str_contains($e->getMessage(), 'invalid_client')) {
+                $errorMsg = 'GitHub: Konfigurasi tidak valid. Hubungi administrator.';
+            }
+            return redirect($this->frontendUrl . '/auth/callback?error=' . urlencode($errorMsg));
         }
     }
 
@@ -177,18 +157,66 @@ class OAuthController extends Controller
     // SHARED HELPER
     // ──────────────────────────────────────────────────────────────
 
-    private function findOrCreateUser(string $email, string $name, string $provider): string
+    /**
+     * Find or create user by email (ANTI-DUPLIKASI LOGIC)
+     * 
+     * RULE: 1 email = 1 akun, regardless of OAuth provider
+     * 
+     * Logic:
+     * 1. Cari user berdasarkan email
+     * 2. Jika ada: update provider ID bila belum ada
+     * 3. Jika tidak ada: create user baru dengan provider OAuth
+     */
+    private function findOrCreateUser(string $email, string $name, string $provider, string $providerId, ?string $avatar = null): string
     {
-        $user = User::firstOrCreate(
-            ['email' => $email],
-            [
-                'name'              => $name,
-                'password'          => Hash::make(Str::random(32)),
-                'email_verified_at' => now(),
-            ]
-        );
+        $providerField = $provider . '_id';  // google_id atau github_id
 
-        // Issue new token (keep others for multi-device)
+        // STEP 1: Cari user dengan email ini (paling penting untuk anti-duplikasi)
+        $user = User::where('email', $email)->first();
+
+        if ($user) {
+            // USER SUDAH ADA → Update provider ID jika belum ada
+            $updates = [];
+
+            // Update provider_id (google_id atau github_id)
+            if (empty($user->{$providerField})) {
+                $updates[$providerField] = $providerId;
+            }
+
+            // Update avatar jika belum ada dan ada avatar baru
+            if (empty($user->avatar) && !empty($avatar)) {
+                $updates['avatar'] = $avatar;
+            }
+
+            // Update provider field ke provider terbaru yang login (untuk tracking)
+            if (empty($user->provider)) {
+                $updates['provider'] = $provider;
+            }
+
+            // Jika ada update, save
+            if (!empty($updates)) {
+                $user->update($updates);
+                \Log::info("OAuth: Updated user {$user->id} with {$provider} ID");
+            } else {
+                \Log::info("OAuth: User {$user->id} already has {$provider} linked");
+            }
+        } else {
+            // USER BELUM ADA → Create user baru dengan OAuth provider
+            $user = User::create([
+                'name'                => $name,
+                'email'               => $email,
+                'email_verified_at'   => now(),  // OAuth email sudah verified
+                $providerField        => $providerId,  // google_id atau github_id
+                'provider'            => $provider,     // Tracking provider
+                'avatar'              => $avatar,
+                // Password: jangan set untuk OAuth-only users, biarkan NULL
+                // User bisa set password later via profile settings
+            ]);
+
+            \Log::info("OAuth: Created new user {$user->id} via {$provider}");
+        }
+
+        // STEP 2: Generate token untuk sesi ini
         $tokenResult = $user->createToken('auth_token_' . $provider);
         SessionController::enrichToken($tokenResult->accessToken, request());
 
