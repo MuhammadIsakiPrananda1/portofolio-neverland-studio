@@ -4,7 +4,7 @@ import { lazy, Suspense } from 'react';
 const MainLayout = lazy(() => import('@layouts/MainLayout'));
 const DashboardLayout = lazy(() => import('@layouts/DashboardLayout'));
 import ScrollToTop from '@components/atoms/ScrollToTop';
-import CustomCursor from '@/CustomCursor';
+import CustomCursor from '@components/atoms/CustomCursor';
 import { CartProvider } from '@/contexts/CartContext';
 import { AuthProvider } from '@/contexts/AuthContext';
 import {
