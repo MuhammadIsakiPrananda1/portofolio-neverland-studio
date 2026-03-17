@@ -10,6 +10,114 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) · Versioning: 
 
 ---
 
+## [1.6.0] - 2026-03-17
+
+### Added
+- **Virtual Machine Lab (VM Lab)** — Docker-based XFCE4 Linux environment with remote desktop access:
+  - Debian 13 Linux desktop environment with XFCE4 GUI
+  - X11VNC server for native VNC protocol support
+  - WebSocket VNC proxy (websockify) for browser-based access (port 6080)
+  - One-time VM per user with 5-minute auto-cleanup for idle sessions
+  - Dynamic port allocation: VNC port (5901), Web port (6080) per user
+  - Real-time container health status tracking (starting → running → stopped)
+  - Pre-built Docker image (1.34GB) for instant deployment
+- **Challenge System (CTF Mode)** — Persistent cybersecurity challenges with progress tracking:
+  - Challenge categories: Web Security, Network Security, Cryptography, Reverse Engineering, Forensics
+  - Dynamic difficulty levels with point scaling
+  - Flag-based submission with validation against challenge backend
+  - Per-user solve history and solve count (survives logout/refresh)
+  - First blood tracking (first user to solve gets bonus)
+  - Challenge completion badges and achievements
+- **Scoreboard API** — Real-time leaderboards and statistics:
+  - Ranked user list by total score and solve count
+  - Per-challenge solve count and difficulty heat map
+  - User detailed stats: challenges solved, total points, solve rate, achievements
+  - Auto-updating rankings (refreshes every 30 seconds on client)
+- **VM Lab API Endpoints** (`/v1/vm/*`):
+  - `POST /v1/vm/start` → Start user's VM (allocates port, creates container)
+  - `GET /v1/vm/status` → Get VM current status + container info
+  - `POST /v1/vm/stop` → Stop running VM gracefully
+  - `GET /v1/vm/connect-url` → Get WebSocket VNC connection URL + token
+  - `DELETE /v1/vm/delete` → Permanently delete VM and free ports
+  - `GET /v1/vm/logs` → Get container logs for debugging
+  - `POST /v1/vm/update-activity` → Update last activity time (for idle tracking)
+- **Challenge API Endpoints** (`/v1/challenges/*`):
+  - `GET /v1/challenges` → List all challenges with metadata
+  - `POST /v1/challenges/{id}/submit` → Submit flag for challenge
+  - `GET /v1/challenges/{id}/status` → Get solve status for current user
+- **Scoreboard API Endpoints** (`/v1/leaderboard`):
+  - `GET /v1/leaderboard` → Top 100 users with scores and solve counts
+  - `GET /v1/scoreboard/stats` → Overall platform statistics
+- **Docker Infrastructure**:
+  - Dockerfile for XFCE4 + VNC + WebSocket proxy
+  - Docker Compose configuration for local development
+  - Automated container cleanup scheduler (removes idle VMs after 5 minutes)
+  - Network isolation via `neverland-lab` bridge network
+- **NoVNC Web Interface** — Browser-based VM desktop access without Java/plugins:
+  - Full-screen embedded VNC viewer in VM Lab page
+  - Automatic viewport scaling for different screen sizes
+  - Clipboard synchronization (experimental)
+- **Architecture Documentation**:
+  - Added comprehensive API documentation (`docs/API.md`)
+  - Challenge system design document (`docs/CHALLENGE_SOLVE_SYSTEM.md`)
+  - VM Lab deployment guide
+  - CTF platform guidelines
+- **GitHub Actions CI/CD** — Automated testing and deployment:
+  - Pulls triggered on `pull_request` and `push` to main
+  - PHP lint, composer validation, database migration tests
+  - Issue templates for bug reports and feature requests
+- **Deployment Improvements**:
+  - VPS deployment guide for Cloudflare Tunnel + Nginx
+  - Environment configuration via `.env` (API keys, database, secrets)
+  - Database seeders for demo challenges
+
+### Changed
+- `PlaygroundVM.tsx` — Completely redesigned with noVNC integration:
+  - Removed SSH terminal emulator mode
+  - Added embedded WebSocket VNC viewer for full desktop GUI access
+  - Real-time VM status indicator (starting/running/stopped)
+  - Connection logs for debugging VNC issues
+  - Responsive layout for tablet/mobile
+- VM database schema: added `container_name`, `status`, `vnc_port`, `web_port`, `health_check_at`, `last_activity_at`
+- API route prefix: all VM/Challenge endpoints now at `/v1/*` (no `/api/v1/*/` prefix per Laravel 11 config)
+- Environment variables: Pusher config, Docker registry, noVNC proxy URL now configurable
+- Router improvements: added `ProtectedRoute` wrapper for authenticated-only pages
+- Component structure: moved `CustomCursor` to atoms folder for better organization
+- Removed deprecated Supabase authentication module from frontend
+
+### Fixed
+- Docker network initialization: ensures `neverland-lab` bridge exists before creating containers
+- VNC authentication: X11 authority file creation for x11vnc server
+- Supervisord configuration: fixed `-n` flag syntax (was `-nodaemon`, causing crashes)
+- API error handling: proper HTTP status codes (500 vs 409 for VM conflicts)
+- Challenge flag submission: case-insensitive comparison option
+- CORS configuration: Docker containers can now reach API via Cloudflare Tunnel
+- Rate limiting: added per-IP and per-user limits on flag submissions
+
+### Security
+- Docker containers run unprivileged (lab user, not root for GUI)
+- VNC server restricted to localhost (6080 port only, not 5901)
+- X11 socket permissions: 1777 (world-writable temp directory)
+- Challenge flag submissions rate-limited: 5 attempts per 60 seconds
+- Input validation: sanitized challenge names, user inputs, Docker image names
+- Secret management: API keys, database credentials now in `.env` (never in code)
+- Added `DecodeBase64Token` middleware for WAF bypass (ModSecurity CRS compatible)
+
+### Removed
+- Docker support from 1.4.0 (completely reimplemented in 1.6.0)
+- Supabase authentication (replaced with Laravel Sanctum)
+- `useAuthState.ts` hook (replaced with API-based auth)
+- Old `supabase-auth.service.ts` module
+- Hardcoded setup scripts (now use Docker Compose + environment config)
+
+### Performance
+- Challenge queries optimized with eager loading (prevent N+1)
+- Scoreboard caching: refresh every 30s on client (not real-time)
+- Docker image layered for caching: base OS → packages → user setup → entrypoint
+- VNC WebSocket compression enabled for lower bandwidth usage
+
+---
+
 ## [1.5.0] - 2026-03-15
 
 ### Added
