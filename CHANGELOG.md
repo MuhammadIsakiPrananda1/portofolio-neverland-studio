@@ -80,26 +80,26 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) · Versioning: 
 ## [1.4.0] - 2026-03-15
 
 ### Removed
-- **Docker completely removed** — `Dockerfile`, `docker-compose.yml`, `.dockerignore`, `nginx.conf` (root), `backend/Dockerfile`, `backend/docker-entrypoint.sh`, `backend/.dockerignore`, `backend/nginx.conf` semua dihapus
-- Semua instruksi Docker dari `README.md`, `INSTALL.md`, `SUPPORT.md`, dan `backend/README.md`
-- Docker badge dari header README dan backend README
-- `DB_HOST=mariadb` (Docker service name) diganti `127.0.0.1`
+- **Docker completely removed** — `Dockerfile`, `docker-compose.yml`, `.dockerignore`, `nginx.conf` (root), `backend/Dockerfile`, `backend/docker-entrypoint.sh`, `backend/.dockerignore`, `backend/nginx.conf` all deleted
+- All Docker instructions from `README.md`, `INSTALL.md`, `SUPPORT.md`, and `backend/README.md`
+- Docker badges from the README and backend README headers
+- `DB_HOST=mariadb` (Docker service name) replaced with `127.0.0.1`
 
 ### Added
-- **Panduan Deploy ke VPS** lengkap di `INSTALL.md` mencakup:
-  - Persiapan server (Nginx, PHP-FPM, Composer, Node.js, MariaDB)
-  - Clone, build frontend, setup backend
-  - Konfigurasi Nginx untuk frontend (`dist/`) dan backend API (`backend/public/`)
-  - Menjalankan Reverb WebSocket dengan **Supervisor**
-  - SSL otomatis dengan **Certbot**
-- Contoh konfigurasi Nginx minimal untuk frontend dan backend API di `README.md`
-- Instruksi Supervisor untuk menjalankan Reverb sebagai background process di VPS
+- **Full VPS deployment guide** in `INSTALL.md` covering:
+  - Server preparation (Nginx, PHP-FPM, Composer, Node.js, MariaDB)
+  - Clone, build frontend, configure backend
+  - Nginx configuration for frontend (`dist/`) and backend API (`backend/public/`)
+  - Running Reverb WebSocket via **Supervisor**
+  - Automatic SSL with **Certbot**
+- Minimal Nginx configuration examples for frontend and backend API in `README.md`
+- Supervisor instructions for running Reverb as a background process on VPS
 
 ### Changed
-- `README.md`: Table of Contents diperbarui (Quick Start Docker → Installation & Setup), section Prerequisites hapus Docker, section Building for Production diganti instruksi VPS
-- `SUPPORT.md`: Quick start diganti manual setup, tabel requirements hapus Docker
-- `backend/README.md`: Installation diganti satu opsi langsung (tanpa Docker), Running the Server hapus subseksi Docker, troubleshooting VM diperbarui untuk lingkungan VPS
-- `CHANGELOG.md`: Upgrade guides diperbarui, hapus `docker-compose up -d --build`
+- `README.md`: Table of Contents updated (Quick Start Docker → Installation & Setup), Prerequisites section removes Docker, Building for Production replaced with VPS instructions
+- `SUPPORT.md`: Quick start replaced with manual setup, requirements table removes Docker
+- `backend/README.md`: Installation simplified to direct VPS setup (no Docker), Running the Server removes Docker subsection, troubleshooting updated for VPS environment
+- `CHANGELOG.md`: Upgrade guides updated, removed `docker-compose up -d --build`
 
 ---
 

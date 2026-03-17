@@ -35,10 +35,10 @@ Include as much detail as possible to help us reproduce and fix the issue quickl
 
 | Version | Supported | Status |
 |---------|-----------|--------|
-| **1.2.x (latest)** | ✅ Yes | Fully Supported |
-| **1.1.x** | ✅ Yes | Fully Supported |
-| **1.0.x** | ⚠️ Limited | Critical fixes only |
-| **< 1.0** | ❌ No | End of Life |
+| **1.5.x (latest)** | ✅ Yes | Fully Supported |
+| **1.4.x** | ✅ Yes | Fully Supported |
+| **1.3.x** | ⚠️ Limited | Critical fixes only |
+| **< 1.3** | ❌ No | End of Life |
 
 ---
 
