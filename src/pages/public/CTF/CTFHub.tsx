@@ -11,6 +11,7 @@ import { challengeService, Challenge, ChallengeDetail, ScoreboardEntry } from '@
 import { useAuth } from '@/contexts/AuthContext';
 import { Link } from 'react-router-dom';
 import { Routes } from '@config/constants';
+import AuthModal from '@/components/organisms/AuthModal/AuthModal';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -54,9 +55,10 @@ interface ChallengeModalProps {
   challenge: Challenge;
   onClose: () => void;
   onSolved: (id: number) => void;
+  onOpenAuthModal: () => void;
 }
 
-function ChallengeModal({ challenge, onClose, onSolved }: ChallengeModalProps) {
+function ChallengeModal({ challenge, onClose, onSolved, onOpenAuthModal }: ChallengeModalProps) {
   const { isAuthenticated } = useAuth();
   const [detail, setDetail] = useState<ChallengeDetail | null>(null);
   const [loadingDetail, setLoadingDetail] = useState(true);
@@ -186,7 +188,7 @@ function ChallengeModal({ challenge, onClose, onSolved }: ChallengeModalProps) {
               <AlertTriangle className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
               <p className="text-blue-300 text-xs">
                 You're in guest mode. Flag verification works but progress won't be saved.{' '}
-                <Link to="/dashboard/login" className="underline font-bold hover:text-blue-200">Login to earn points.</Link>
+                <button onClick={onOpenAuthModal} className="underline font-bold hover:text-blue-200 cursor-pointer">Login to earn points.</button>
               </p>
             </div>
           )}
@@ -389,6 +391,7 @@ export default function CTFHub() {
   const [selectedDiff, setSelectedDiff] = useState<string>('All');
   const [search, setSearch] = useState('');
   const [activeChallenge, setActiveChallenge] = useState<Challenge | null>(null);
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   // Fetch challenges
   useEffect(() => {
@@ -471,7 +474,7 @@ export default function CTFHub() {
               <Shield className="w-4 h-4 text-blue-400 shrink-0" />
               <p className="text-blue-300 text-sm">
                 You're browsing as a guest. You can attempt challenges but progress won't be saved.{' '}
-                <Link to="/dashboard/login" className="font-bold underline hover:text-blue-200">Login to earn points →</Link>
+                <button onClick={() => setShowAuthModal(true)} className="font-bold underline hover:text-blue-200 cursor-pointer">Login to earn points →</button>
               </p>
             </motion.div>
           )}
@@ -695,9 +698,13 @@ export default function CTFHub() {
             challenge={activeChallenge}
             onClose={() => setActiveChallenge(null)}
             onSolved={handleSolved}
+            onOpenAuthModal={() => setShowAuthModal(true)}
           />
         )}
       </AnimatePresence>
+
+      {/* ─── Auth Modal ─── */}
+      <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
     </div>
   );
 }
