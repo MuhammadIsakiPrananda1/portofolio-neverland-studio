@@ -10,6 +10,21 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) · Versioning: 
 
 ---
 
+## [1.7.0] - 2026-03-18
+
+### Changed
+- **Sidebar Layout Cleanup** — Enhanced UI/UX with improved alignment, spacing, and visual consistency:
+  - Standardized padding and vertical spacing across all navigation items
+  - Improved icon-to-text alignment with centered positioning
+  - Consistent gap spacing between icon and label (2.5rem standard)
+  - Better hierarchical indentation for nested menu items with calculated margins
+  - Enhanced vertical rhythm with harmonized `space-y` values (2-6rem)
+  - Improved sub-item styling with better visual distinction
+  - Cleaner code structure with better CSS organization
+  - Maintained 100% functional compatibility and responsive behavior
+
+---
+
 ## [1.6.0] - 2026-03-17
 
 ### Added
