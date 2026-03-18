@@ -11,4 +11,4 @@ Allow: /*.css$
 Allow: /*.webp$
 Allow: /*.png$
 
-Sitemap: https://portfolio.neverlandstudio.my.id/sitemap.xml
+Sitemap: http://portfolio.neverlandstudio.my.id/sitemap.xml

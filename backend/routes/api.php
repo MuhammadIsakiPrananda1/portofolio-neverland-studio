@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\OAuthController;
 use App\Http\Controllers\Api\SessionController;
@@ -19,8 +20,7 @@ use App\Http\Controllers\Api\PortfolioController;
 use App\Http\Controllers\Api\MediaController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\ChallengeController;
-use App\Http\Controllers\Api\ScoreboardController;
-use App\Http\Controllers\Api\VMController;
+use App\Http\Controllers\Api\HealthCheckController;
 
 /*
 |--------------------------------------------------------------------------
@@ -30,6 +30,13 @@ use App\Http\Controllers\Api\VMController;
 
 // Test route
 Route::get('/api/test', function () { return 'test works with api'; });
+
+// Health Check Routes (no auth required, for monitoring tools)
+Route::prefix('health')->group(function () {
+    Route::get('/check', [\App\Http\Controllers\Api\HealthCheckController::class, 'check']);     // Full health status
+    Route::get('/ping', [\App\Http\Controllers\Api\HealthCheckController::class, 'ping']);       // Quick ping (for load balancer)
+    Route::get('/details', [\App\Http\Controllers\Api\HealthCheckController::class, 'details']); // Detailed diagnostics
+});
 Route::get('/test', function () { return 'test works without api'; });
 
 // Health Check
@@ -114,6 +121,23 @@ Route::prefix('v1')->group(function () {
     
     // Cyber News Proxy (Base64 Bypass for WAF)
     Route::get('/cyber-news/fetch', [\App\Http\Controllers\Api\CyberNewsController::class, 'fetch']);
+
+    // CTF Hub Challenges
+    Route::get('/challenges', [\App\Http\Controllers\Api\ChallengeController::class, 'index']);
+    Route::get('/challenges/{id}', [\App\Http\Controllers\Api\ChallengeController::class, 'show']);
+    Route::post('/challenges/{challenge}/submit', [\App\Http\Controllers\Api\ChallengeController::class, 'submit']);
+    Route::get('/scoreboard', [\App\Http\Controllers\Api\ChallengeController::class, 'scoreboard']);
+
+    // Virtual Machine Management (Public - Rate Limited)
+    Route::prefix('vm')->controller(\App\Http\Controllers\VMController::class)->group(function () {
+        Route::post('/start', 'start');                          // Start new VM container
+        Route::post('/{container}/stop', 'stop');                // Stop VM container
+        Route::get('/{container}/status', 'status');             // Get VM status
+        Route::post('/{container}/execute', 'execute');          // Execute command
+        Route::post('/{container}/extend', 'extend');            // Extend session
+        Route::get('/vpn-config', 'vpnConfig');                  // Get VPN connection info (rotating IP)
+        Route::get('/vpn-config/download', 'downloadVpnConfig'); // Download .ovpn config file
+    });
 });
 
 // Protected Routes (Authentication handled by Supabase on frontend)
@@ -225,39 +249,4 @@ Route::prefix('v1')->group(function () {
     Route::post('/media/upload', [MediaController::class, 'upload']);
     Route::delete('/media/{id}', [MediaController::class, 'destroy']);
     Route::get('/media', [MediaController::class, 'index']);
-
-    // Challenge Management & CTF (Public endpoints for listing)
-    Route::prefix('challenges')->controller(ChallengeController::class)->group(function () {
-        Route::get('/', 'index');                           // Get all challenges with filter
-        Route::get('/{challenge}', 'show');                 // Get challenge details
-        
-        // Protected endpoints
-        Route::middleware('auth:sanctum')->group(function () {
-            Route::post('/submit', 'submitFlag');           // Submit flag for verification
-            Route::get('/user/solved', 'getSolvedChallenges'); // Get user's solved challenges
-            Route::get('/user/progress', 'getUserProgress'); // Get user progress
-            Route::get('/user/stats', 'getUserStats');      // Get user statistics
-        });
-    });
-
-    // Scoreboard & Leaderboard (Public)
-    Route::prefix('scoreboard')->controller(ScoreboardController::class)->group(function () {
-        Route::get('/', 'getScoreboard');                   // Get global scoreboard/leaderboard
-        Route::get('/top', 'getScoreboard');                // Top users
-        Route::get('/user/{userId}', 'getUserRank');       // Get specific user rank
-        Route::get('/category/{category}', 'getCategoryLeaderboard'); // Category leaderboard
-        Route::get('/first-blood', 'getFirstBloodLeaderboard'); // First blood leaderboard
-        Route::get('/stats', 'getChallengeStats');          // Challenge statistics
-    });
-
-    // Virtual Machine Lab (Protected - requires authentication)
-    Route::prefix('vm')->controller(VMController::class)->middleware('auth:sanctum')->group(function () {
-        Route::get('/status', 'getStatus');                 // Get VM status
-        Route::post('/start', 'start');                     // Start new VM or restart existing
-        Route::post('/stop', 'stop');                       // Stop running VM
-        Route::get('/connect-url', 'getConnectUrl');        // Get noVNC connection URL
-        Route::delete('/delete', 'delete');                 // Delete VM completely
-        Route::get('/logs', 'getLogs');                     // Get container logs (debugging)
-        Route::post('/update-activity', 'updateActivity');  // Update activity for idle tracking
-    });
 });

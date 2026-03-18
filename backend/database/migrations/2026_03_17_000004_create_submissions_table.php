@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
             $table->foreignId('challenge_id')->constrained('challenges')->cascadeOnDelete();
             $table->text('submitted_flag');
-            $table->enum('status', ['correct', 'wrong'])->index();
+            $table->enum('status', ['correct', 'wrong', 'already_solved'])->index();
             $table->string('ip_address'); // For security & rate limiting
             $table->string('user_agent')->nullable();
             $table->timestamps();
@@ -24,7 +24,8 @@ return new class extends Migration
             // Indexes for performance
             $table->index(['user_id', 'challenge_id']);
             $table->index(['user_id', 'created_at']); // For rate limiting
-            $table->index('ip_address');
+            $table->index(['ip_address']);
+            $table->index(['status']);
         });
     }
 

@@ -1,55 +1,134 @@
-# Logs
-logs
+# ============================================================================
+# Environment & Credentials (SENSITIVE - NEVER COMMIT)
+# ============================================================================
+.env
+.env.local
+.env.*.local
+.env.production
+.env.development
+.env.production.local
+.env.development.local
+.env.dynamic
+
+# ============================================================================
+# Backend (Laravel)
+# ============================================================================
+/backend/vendor/
+/backend/node_modules/
+/backend/.php_cs.cache
+/backend/.php-cs-fixer.cache
+/backend/composer.lock
+/backend/artisan
+/backend/.runtime/
+/backend/bootstrap/cache/
+/backend/storage/logs/
+/backend/storage/framework/cache/
+/backend/storage/framework/sessions/
+/backend/storage/framework/views/
+/backend/storage/app/
+/backend/storage/*.key
+/backend/public/storage
+/backend/public/hot
+/backend/public/uploads/
+/backend/.phpunit.result.cache
+/backend/phpstan.baseline.neon
+/backend/.pest.result.cache
+
+# ============================================================================
+# Frontend (React + Vite)
+# ============================================================================
+# Dependencies
+/src/node_modules/
+/node_modules/
+/frontend/node_modules/
+
+# Build outputs (node_modules dan dist diabaikan dari git)
+/src/dist/
+/src/.vite/
+/dist/
+/build/
+dist-ssr/
+
+# Vite temp
+.vite/
+
+# Environment
+/src/.env.local
+/src/.env.*.local
+
+# ============================================================================
+# IDE & Editor (IGNORED - Keep development config local)
+# ============================================================================
+.vscode/*
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/settings.json
+.idea/
+.idea_modules/
+*.sublime-workspace
+*.sublime-project
+.netbeans/
+.buildpath
+.project
+.pydevproject
+.settings/
+*.c9/
+*.sagaw
+*.iws
+*.iml
+*.ipr
+*.sw?
+*.swp
+*.swo
+*~
+
+# ============================================================================
+# OS Files
+# ============================================================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# ============================================================================
+# Logs & Debugging (IGNORED - Generated during runtime)
+# ============================================================================
+logs/
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
+debug.log*.log*
 
-node_modules
-dist
-dist-ssr
-*.local
-
-# Environment files
-.env
-.env.local
-.env.*.local
-.env.production
-.env.development
-
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
-.DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
-
-# Backend
-backend/.env
-backend/vendor
-backend/storage/*.key
-backend/.phpunit.result.cache
-backend/storage/app/
-backend/storage/framework/cache/
-backend/storage/framework/sessions/
-backend/storage/framework/views/
-backend/storage/logs/
-backend/bootstrap/cache/*.php
-
-# Database
+# ============================================================================
+# Database (IGNORED - Local development only)
+# ============================================================================
 *.sqlite
 *.sqlite-journal
+*.db
 
-# OS
-.DS_Store
-Thumbs.db
+# ============================================================================
+# Docker & Docker Compose (local temp files)
+# ============================================================================
+.dockerignore
+docker-compose.override.yml
 
-# Build artifacts
+# ============================================================================
+# Miscellaneous Build Artifacts
+# ============================================================================
 tsconfig.app.tsbuildinfo
 tsconfig.node.tsbuildinfo
+.nyc_output/
+coverage/
+*.tsbuildinfo
+tmp/
+temp/
+.cache/
+.next/
+.nuxt/
+out/

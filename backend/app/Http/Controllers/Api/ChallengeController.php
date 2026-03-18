@@ -97,133 +97,253 @@ class ChallengeController extends Controller
     }
 
     /**
-     * Submit flag for a challenge
+     * Submit flag for a challenge (public endpoint — auth optional for guest mode)
+     * Route: POST /api/v1/challenges/{challenge}/submit
+     * 
+     * Security considerations:
+     * - Rate limiting prevents brute force
+     * - Constant-time comparison prevents timing attacks
+     * - Transaction ensures data consistency
+     * - Proper error handling for all cases
      */
-    public function submitFlag(Request $request)
+    public function submit(Request $request, Challenge $challenge)
     {
-        if (!Auth::check()) {
-            return response()->json(['error' => 'Unauthorized'], 401);
-        }
+        try {
+            if (!$challenge->is_active) {
+                return response()->json(['error' => 'Challenge not found'], 404);
+            }
 
-        $request->validate([
-            'challenge_id' => 'required|exists:challenges,id',
-            'flag' => 'required|string',
-        ]);
+            $validated = $request->validate([
+                'flag' => ['required', 'string', 'max:500'],
+            ], [
+                'flag.required' => 'Flag is required',
+                'flag.max' => 'Flag cannot exceed 500 characters',
+            ]);
 
-        $userId = Auth::id();
-        $challengeId = $request->input('challenge_id');
-        $submittedFlag = trim($request->input('flag'));
-        $ipAddress = $request->ip();
+            $submittedFlag = trim($validated['flag']);
+            $ipAddress = $request->ip();
+            $userId = Auth::id();
 
-        $user = User::find($userId);
-        $challenge = Challenge::find($challengeId);
+            // ==================== GUEST MODE ====================
+            // If not authenticated, just verify and return result without saving
+            if (!$userId) {
+                $isCorrect = \App\Services\CTFChallengeValidator::validate(
+                    $submittedFlag,
+                    $challenge,
+                    'direct'
+                );
 
-        // ==================== RATE LIMITING & BRUTE FORCE PROTECTION ====================
-        // Check rate limiting (max 10 submissions per minute per user)
-        $recentSubmissions = Submission::getSubmissionsInLastMinutes($userId, 1);
-        if ($recentSubmissions >= 10) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Too many attempts. Please wait 1 minute before trying again.',
-                'remaining' => 60 - (int)now()->diffInSeconds(now()->addMinutes(1)),
-            ], 429);
-        }
+                return response()->json([
+                    'status' => $isCorrect ? 'correct' : 'incorrect',
+                    'message' => $isCorrect
+                        ? 'Correct! Login to save your progress and earn points.'
+                        : 'Incorrect flag. Try again!',
+                    'guest' => true,
+                ], 200);
+            }
 
-        // Check if user is temporarily blocked (50+ wrong submissions in 10 minutes)
-        $wrongCount = Submission::getRecentWrongSubmissions($userId, 10);
-        $blockKey = "challenge:blocked:{$userId}:{$challengeId}";
-        if (Cache::has($blockKey)) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'This challenge is temporarily locked due to too many wrong attempts. Try again in 5 minutes.',
-            ], 429);
-        }
+            $user = User::find($userId);
 
-        if ($wrongCount >= 50) {
-            Cache::put($blockKey, true, now()->addMinutes(5));
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Too many wrong attempts. Challenge locked for 5 minutes.',
-            ], 429);
-        }
+            if (!$user) {
+                return response()->json(['error' => 'User not found'], 404);
+            }
 
-        // Check if user already solved this challenge
-        if (ChallengeSolve::isSolvedByUser($userId, $challengeId)) {
-            // Record submission anyway
-            Submission::create([
-                'user_id' => $userId,
-                'challenge_id' => $challengeId,
+            // Check if user is suspended
+            if ($user->isSuspended()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Your account has been suspended.',
+                ], 403);
+            }
+
+            // ==================== RATE LIMITING & BRUTE FORCE PROTECTION ====================
+            $recentSubmissions = Submission::getSubmissionsInLastMinutes($userId, 1);
+            if ($recentSubmissions >= 10) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Too many attempts. Please wait 1 minute before trying again.',
+                    'retry_after' => 60,
+                ], 429);
+            }
+
+            // Check if challenge is temporarily blocked
+            $blockKey = "challenge:blocked:{$userId}:{$challenge->id}";
+            if (cache()->has($blockKey)) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Challenge locked due to too many wrong attempts. Try again in 5 minutes.',
+                    'retry_after' => 300,
+                ], 429);
+            }
+
+            // Count wrong submissions in last 10 minutes
+            $wrongCount = Submission::getRecentWrongSubmissions($userId, 10);
+            if ($wrongCount >= 50) {
+                cache()->put($blockKey, true, now()->addMinutes(5));
+                
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Too many wrong attempts. Challenge locked for 5 minutes.',
+                    'retry_after' => 300,
+                ], 429);
+            }
+
+            // ==================== ALREADY SOLVED ====================
+            if (ChallengeSolve::isSolvedByUser($userId, $challenge->id)) {
+                // Log the attempt (for audit)
+                Submission::create([
+                    'user_id'        => $userId,
+                    'challenge_id'   => $challenge->id,
+                    'submitted_flag' => $submittedFlag,
+                    'status'         => 'already_solved',
+                    'ip_address'     => $ipAddress,
+                    'user_agent'     => $request->userAgent(),
+                ]);
+
+                return response()->json([
+                    'status'  => 'already_solved',
+                    'message' => 'You have already solved this challenge!',
+                ], 200);
+            }
+
+            // ==================== FLAG VERIFICATION ====================
+            // Use CTFChallengeValidator service for secure validation
+            $isCorrect = \App\Services\CTFChallengeValidator::validate(
+                $submittedFlag,
+                $challenge,
+                'direct'  // Can detect format and use appropriate method
+            );
+
+            // Record submission (before transaction to avoid lock issues)
+            $submission = Submission::create([
+                'user_id'        => $userId,
+                'challenge_id'   => $challenge->id,
                 'submitted_flag' => $submittedFlag,
-                'status' => 'wrong',
-                'ip_address' => $ipAddress,
-                'user_agent' => $request->userAgent(),
+                'status'         => $isCorrect ? 'correct' : 'wrong',
+                'ip_address'     => $ipAddress,
+                'user_agent'     => $request->userAgent(),
+            ]);
+
+            // If correct, process the solve within a transaction
+            if ($isCorrect) {
+                return DB::transaction(function () use ($user, $challenge, $userId) {
+                    // Verify user hasn't solved while we were processing
+                    if (ChallengeSolve::isSolvedByUser($userId, $challenge->id)) {
+                        throw new \Exception('Challenge already solved by another request');
+                    }
+
+                    // Calculate points
+                    $points = $challenge->getCurrentPoints();
+                    $isFirstBlood = false;
+
+                    // First blood bonus
+                    if (!$challenge->first_blood_user_id) {
+                        $challenge->update([
+                            'first_blood_user_id' => $userId,
+                            'first_blood_at' => now(),
+                        ]);
+                        $isFirstBlood = true;
+                        $points += intval($challenge->initial_points * 0.1); // 10% bonus
+                    }
+
+                    // Record the solve
+                    ChallengeSolve::create([
+                        'user_id' => $userId,
+                        'challenge_id' => $challenge->id,
+                        'points_awarded' => $points,
+                        'solved_at' => now(),
+                    ]);
+
+                    // Update challenge solve count
+                    $challenge->increment('solve_count');
+
+                    // Update user score
+                    $user->increment('score', $points);
+
+                    // Clear caches
+                    cache()->forget("scoreboard:all");
+                    cache()->forget("user:score:{$userId}");
+                    cache()->forget("challenges:list:user_solved");
+                    cache()->forget("user:solved:{$userId}");
+
+                    return response()->json([
+                        'status'        => 'correct',
+                        'message'       => 'Challenge solved! Points awarded.',
+                        'points'        => $points,
+                        'first_blood'   => $isFirstBlood,
+                        'total_score'   => $user->fresh()->score,
+                    ], 200);
+                });
+            }
+
+            // Incorrect submission
+            return response()->json([
+                'status'  => 'incorrect',
+                'message' => 'Incorrect flag. Try again!',
+            ], 200);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Validation error',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Exception $e) {
+            \Log::error('Challenge submission error: ' . $e->getMessage(), [
+                'user_id' => Auth::id(),
+                'challenge_id' => $challenge->id ?? null,
+                'trace' => $e->getTraceAsString(),
             ]);
 
             return response()->json([
-                'status' => 'already_solved',
-                'message' => 'You have already solved this challenge!',
-            ], 200);
+                'status' => 'error',
+                'message' => 'An error occurred while submitting. Please try again.',
+            ], 500);
         }
-
-        // ==================== FLAG VERIFICATION ====================
-        $isCorrect = strtolower(trim($submittedFlag)) === strtolower(trim($challenge->flag));
-
-        // Record submission
-        Submission::create([
-            'user_id' => $userId,
-            'challenge_id' => $challengeId,
-            'submitted_flag' => $submittedFlag,
-            'status' => $isCorrect ? 'correct' : 'wrong',
-            'ip_address' => $ipAddress,
-            'user_agent' => $request->userAgent(),
+    }
+            'status'         => $isCorrect ? 'correct' : 'wrong',
+            'ip_address'     => $ipAddress,
+            'user_agent'     => $request->userAgent(),
         ]);
 
         if ($isCorrect) {
-            return DB::transaction(function () use ($user, $challenge, $userId, $challengeId) {
-                // ==================== DYNAMIC SCORING ====================
+            return DB::transaction(function () use ($user, $challenge, $userId) {
                 $points = $challenge->getCurrentPoints();
 
-                // ==================== FIRST BLOOD CHECK ====================
+                // First blood
                 $isFirstBlood = false;
                 if (!$challenge->first_blood_user_id) {
                     $challenge->update([
                         'first_blood_user_id' => $userId,
-                        'first_blood_at' => now(),
+                        'first_blood_at'      => now(),
                     ]);
                     $isFirstBlood = true;
-                    
-                    // Bonus points for first blood (10% of initial points)
                     $points += intval($challenge->initial_points * 0.1);
                 }
 
-                // ==================== SAVE SOLVE & UPDATE SCORE ====================
-                ChallengeSolve::markAsSolved($userId, $challengeId, $points);
-                
-                // Update challenge solve count
+                ChallengeSolve::markAsSolved($userId, $challenge->id, $points);
                 $challenge->increment('solve_count');
-
-                // Update user score
                 $user->increment('score', $points);
 
-                // Invalidate cache
                 Cache::forget("scoreboard:all");
                 Cache::forget("user:score:{$userId}");
+                Cache::forget("challenges:list::");
+                Cache::forget("user:solved:{$userId}");
 
                 return response()->json([
-                    'status' => 'correct',
-                    'message' => 'Challenge solved successfully!',
-                    'points' => $points,
+                    'status'      => 'correct',
+                    'message'     => 'Challenge solved! Points awarded.',
+                    'points'      => $points,
                     'first_blood' => $isFirstBlood,
                     'total_score' => $user->score + $points,
                 ], 200);
             });
-        } else {
-            return response()->json([
-                'status' => 'incorrect',
-                'message' => 'Incorrect flag. Try again!',
-                'remaining_attempts' => 10 - (Submission::getSubmissionsInLastMinutes($userId, 1) + 1),
-            ], 200);
         }
+
+        return response()->json([
+            'status'  => 'incorrect',
+            'message' => 'Incorrect flag. Try again!',
+        ], 200);
     }
 
     /**

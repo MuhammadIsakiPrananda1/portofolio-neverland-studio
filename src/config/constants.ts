@@ -39,6 +39,7 @@ export enum Routes {
   MANAGED_SERVICES = "/services/managed-services",
   CONSULTING = "/services/consulting",
   CTF = "/services/ctf",
+  CTF_HUB = "/ctf/hub",
   ABOUT = "/about",
   PROJECTS = "/projects",
   BLOG = "/blog",

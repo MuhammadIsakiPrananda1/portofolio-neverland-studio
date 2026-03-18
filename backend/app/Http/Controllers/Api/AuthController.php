@@ -46,56 +46,172 @@ class AuthController extends Controller
 
     /**
      * Login user and issue token
+     * 
+     * Security features:
+     * - Rate limiting per email+IP
+     * - Account lockout after 5 failed attempts
+     * - Login attempt logging
+     * - Last login tracking
+     * - 2FA support
      */
     public function login(Request $request): JsonResponse
     {
-        $request->validate([
-            'email'    => ['required', 'string', 'email'],
-            'password' => ['required', 'string'],
-        ]);
-
-        $throttleKey = Str::transliterate(Str::lower($request->input('email')).'|'.$request->ip());
-
-        if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
-            $seconds = RateLimiter::availableIn($throttleKey);
-            throw ValidationException::withMessages([
-                'email' => ["Terlalu banyak percobaan login. Silakan coba lagi dalam {$seconds} detik."],
+        try {
+            $validated = $request->validate([
+                'email'    => ['required', 'string', 'email', 'max:255'],
+                'password' => ['required', 'string', 'min:8'],
+            ], [
+                'email.required' => 'Email is required',
+                'email.email' => 'Email must be valid',
+                'password.required' => 'Password is required',
+                'password.min' => 'Password must be at least 8 characters',
             ]);
-        }
 
-        if (!Auth::attempt($request->only('email', 'password'))) {
-            RateLimiter::hit($throttleKey);
-            throw ValidationException::withMessages([
-                'email' => ['Email atau password salah.'],
+            $email = strtolower(trim($validated['email']));
+            $ipAddress = $request->ip();
+            $throttleKey = "login:{$email}:{$ipAddress}";
+
+            // Rate limiting: max 5 attempts per 5 minutes
+            if (\Illuminate\Support\Facades\RateLimiter::tooManyAttempts($throttleKey, 5)) {
+                $seconds = \Illuminate\Support\Facades\RateLimiter::availableIn($throttleKey);
+                
+                return response()->json([
+                    'status' => 'error',
+                    'message' => "Too many login attempts. Please try again in {$seconds} seconds.",
+                    'retry_after' => $seconds,
+                ], 429);
+            }
+
+            // Find user
+            $user = User::where('email', $email)->first();
+
+            if (!$user) {
+                RateLimiter::hit($throttleKey, 5 * 60); // 5 minutes
+                
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Email or password is incorrect.',
+                ], 401);
+            }
+
+            // Check if account is suspended
+            if ($user->isSuspended()) {
+                \Log::warning('Login attempt on suspended account', [
+                    'email' => $email,
+                    'ip' => $ipAddress,
+                ]);
+
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'This account has been suspended.',
+                ], 403);
+            }
+
+            // Check if account is locked
+            if ($user->isAccountLocked()) {
+                $remainingSeconds = $user->locked_until->diffInSeconds(now());
+
+                return response()->json([
+                    'status' => 'error',
+                    'message' => "Account is locked due to multiple failed login attempts. Please try again in {$remainingSeconds} seconds.",
+                    'retry_after' => $remainingSeconds,
+                ], 423);
+            }
+
+            // Verify password
+            if (!Hash::check($validated['password'], $user->password)) {
+                $user->incrementFailedAttempts();
+
+                RateLimiter::hit($throttleKey, 5 * 60);
+
+                // Lock account if 5 failed attempts
+                if ($user->failed_login_attempts >= 5) {
+                    $user->lockAccount(15); // 15 minutes
+
+                    \Log::warning('Account locked due to failed login attempts', [
+                        'email' => $email,
+                        'ip' => $ipAddress,
+                        'attempts' => $user->failed_login_attempts,
+                    ]);
+
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => 'Account locked due to multiple failed attempts. Please try again in 15 minutes.',
+                        'retry_after' => 900,
+                    ], 423);
+                }
+
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Email or password is incorrect.',
+                ], 401);
+            }
+
+            // Check if email is verified
+            if (!$user->isEmailVerified()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Please verify your email before logging in.',
+                ], 403);
+            }
+
+            // Reset failed attempts and unlock on successful login
+            $user->resetFailedAttempts();
+            $user->recordLogin($ipAddress);
+
+            RateLimiter::clear($throttleKey);
+
+            // Check if 2FA is enabled
+            if ($user->hasTwoFactorEnabled()) {
+                $tempToken = Str::random(40);
+                cache()->put('2fa_login_' . $tempToken, $user->id, now()->addMinutes(5));
+
+                \Log::info('2FA prompt shown', [
+                    'email' => $email,
+                    'ip' => $ipAddress,
+                ]);
+
+                return response()->json([
+                    'status' => 'success',
+                    'two_factor_required' => true,
+                    'two_factor_token' => $tempToken,
+                    'message' => 'Enter your 2FA code from your authenticator app.',
+                ]);
+            }
+
+            // Generate authentication token
+            $tokenResult = $user->createToken('auth_token');
+
+            \Log::info('User login successful', [
+                'email' => $email,
+                'ip' => $ipAddress,
+                'timestamp' => now(),
             ]);
-        }
-
-        RateLimiter::clear($throttleKey);
-
-        /** @var User $user */
-        $user = $request->user();
-
-        // If 2FA is enabled, issue a temp token and require verification
-        if ($user->hasTwoFactorEnabled()) {
-            $tempToken = Str::random(40);
-            cache()->put('2fa_login_' . $tempToken, $user->id, now()->addMinutes(5));
 
             return response()->json([
-                'two_factor_required' => true,
-                'two_factor_token'    => $tempToken,
-                'message'             => 'Masukkan kode 2FA dari aplikasi authenticator kamu.',
+                'status' => 'success',
+                'user' => $user,
+                'token' => base64_encode($tokenResult->plainTextToken), // Base64 for WAF compatibility
+                'message' => 'Login successful',
             ]);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Validation failed',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Exception $e) {
+            \Log::error('Login error: ' . $e->getMessage(), [
+                'email' => $validated['email'] ?? null,
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'status' => 'error',
+                'message' => 'An error occurred during login. Please try again.',
+            ], 500);
         }
-
-        // Issue a fresh token (keep previous tokens for multi-device support)
-        $tokenResult = $user->createToken('auth_token');
-        SessionController::enrichToken($tokenResult->accessToken, $request);
-
-        return response()->json([
-            'user'    => $user,
-            'token'   => base64_encode($tokenResult->plainTextToken), // Base64 encode to bypass WAF
-            'message' => 'Login successful',
-        ]);
     }
 
     /**

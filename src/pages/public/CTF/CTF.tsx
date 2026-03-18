@@ -5,7 +5,8 @@ import {
   Binary, Network, Zap,
   Award, Users, CheckCircle,
   ArrowRight, Lightbulb,
-  Shield, GraduationCap, TrendingUp
+  Shield, GraduationCap, TrendingUp,
+  Terminal
 } from 'lucide-react';
 import Button from '@components/atoms/Button';
 import SectionTitle from '@components/molecules/SectionTitle';
@@ -108,6 +109,50 @@ export default function CTFPage() {
   return (
     <div className="pt-32 pb-20">
       <div className="container-custom">
+
+        {/* ─── CTF Hub Live Entry Banner ─── */}
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="mb-12"
+        >
+          <Link to={Routes.CTF_HUB} className="group block">
+            <div className="relative overflow-hidden rounded-sm border border-red-500/40 bg-gradient-to-r from-red-950/40 via-[#0f172a] to-[#0f172a] hover:border-red-500/70 transition-all duration-300 p-6 lg:p-8">
+              {/* Animated top border */}
+              <div className="absolute top-0 left-0 right-0 h-[2px] bg-red-500" />
+              {/* Glow bg */}
+              <div className="absolute top-0 left-0 w-64 h-full bg-red-500/5 blur-3xl pointer-events-none" />
+
+              <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
+                <div className="flex items-center gap-5">
+                  <div className="p-3.5 rounded-sm bg-red-500/15 border border-red-500/30 group-hover:bg-red-500/25 transition-colors">
+                    <Terminal className="w-8 h-8 text-red-400" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-[10px] font-black uppercase tracking-[0.2em] text-red-400">Live Platform</span>
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                      <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">Online</span>
+                    </div>
+                    <h2 className="text-2xl lg:text-3xl font-black uppercase tracking-tight text-white group-hover:text-red-300 transition-colors">
+                      Enter CTF Hub
+                    </h2>
+                    <p className="text-slate-400 text-sm font-medium mt-1">
+                      13 live challenges · Solve flags · Earn points · Climb the leaderboard
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 bg-red-600 group-hover:bg-red-700 transition-colors rounded-sm px-6 py-3 text-white font-black uppercase tracking-wide text-sm whitespace-nowrap">
+                  Play Now
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </div>
+              </div>
+            </div>
+          </Link>
+        </motion.div>
+
         {/* Hero Section - Clean & Modern */}
         <motion.div
           className="text-center mb-24"

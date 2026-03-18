@@ -35,6 +35,7 @@ export const SecurityAudit = lazyLoad(() => import('@pages/services/SecurityAudi
 export const NetworkSecurity = lazyLoad(() => import('@pages/services/NetworkSecurity'));
 export const CloudSecurity = lazyLoad(() => import('@pages/services/CloudSecurity'));
 export const CTF = lazyLoad(() => import('@pages/public/CTF'));
+export const CTFHub = lazyLoad(() => import('@pages/public/CTF/CTFHub'));
 
 // ─── Service pages – Web Development ─────────────────────────────────────────
 export const WebDevelopment = lazyLoad(() => import('@pages/services/WebDevelopment'));
@@ -162,6 +163,7 @@ export const mainRoutes: RouteConfig[] = [
   // Auth routes
   { path: '/dashboard/login', element: DashboardLogin },
   { path: '/auth/callback', element: AuthCallback },
+  { path: AppRoutes.CTF_HUB, element: CTFHub },
 ];
 
 // Service routes configuration

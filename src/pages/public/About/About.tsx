@@ -7,15 +7,16 @@ import {
   Terminal
 } from 'lucide-react';
 import SectionTitle from '@components/molecules/SectionTitle';
+import { AnimatedCounter } from '@components/atoms/AnimatedCounter';
 import { COMPANY_INFO, Routes } from '@config/constants';
 import { staggerContainer, staggerItem, slideUp } from '@utils/animations';
 
 export default function About() {
   const companyStats = [
-    { icon: Users, value: '50+', label: 'Expert Team Members' },
-    { icon: Globe, value: '25+', label: 'Countries Served' },
-    { icon: Briefcase, value: '500+', label: 'Successful Projects' },
-    { icon: Award, value: '98%', label: 'Client Satisfaction' },
+    { icon: Users, value: 50, suffix: '+', label: 'Expert Team Members' },
+    { icon: Globe, value: 25, suffix: '+', label: 'Countries Served' },
+    { icon: Briefcase, value: 500, suffix: '+', label: 'Successful Projects' },
+    { icon: Award, value: 98, suffix: '%', label: 'Client Satisfaction' },
   ];
 
   const coreValues = [
@@ -111,7 +112,12 @@ export default function About() {
             >
               <stat.icon className="w-10 h-10 mx-auto mb-3 text-emerald-500" />
               <div className="text-3xl lg:text-4xl font-black font-mono text-white group-hover:text-emerald-400 transition-colors mb-2">
-                {stat.value}
+                <AnimatedCounter
+                  end={stat.value}
+                  suffix={stat.suffix}
+                  duration={2500}
+                  decimals={0}
+                />
               </div>
               <div className="text-xs text-slate-400 font-bold uppercase tracking-wider">
                 {stat.label}

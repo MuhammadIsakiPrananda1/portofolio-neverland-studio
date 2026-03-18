@@ -1,61 +1,61 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <!-- Core pages -->
-  <url><loc>https://portfolio.neverlandstudio.my.id/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>
-  <url><loc>https://portfolio.neverlandstudio.my.id/about</loc><changefreq>monthly</changefreq><priority>0.9</priority></url>
-  <url><loc>https://portfolio.neverlandstudio.my.id/team</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://portfolio.neverlandstudio.my.id/projects</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
-  <url><loc>https://portfolio.neverlandstudio.my.id/blog</loc><changefreq>daily</changefreq><priority>0.8</priority></url>
-  <url><loc>https://portfolio.neverlandstudio.my.id/contact</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://portfolio.neverlandstudio.my.id/careers</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://portfolio.neverlandstudio.my.id/awards</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://portfolio.neverlandstudio.my.id/testimonials</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://portfolio.neverlandstudio.my.id/cyber-news</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
-  <url><loc>https://portfolio.neverlandstudio.my.id/learning-path</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://portfolio.neverlandstudio.my.id/resources</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://portfolio.neverlandstudio.my.id/security-glossary</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>http://portfolio.neverlandstudio.my.id/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>
+  <url><loc>http://portfolio.neverlandstudio.my.id/about</loc><changefreq>monthly</changefreq><priority>0.9</priority></url>
+  <url><loc>http://portfolio.neverlandstudio.my.id/team</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>http://portfolio.neverlandstudio.my.id/projects</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
+  <url><loc>http://portfolio.neverlandstudio.my.id/blog</loc><changefreq>daily</changefreq><priority>0.8</priority></url>
+  <url><loc>http://portfolio.neverlandstudio.my.id/contact</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>http://portfolio.neverlandstudio.my.id/careers</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>http://portfolio.neverlandstudio.my.id/awards</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>http://portfolio.neverlandstudio.my.id/testimonials</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>http://portfolio.neverlandstudio.my.id/cyber-news</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
+  <url><loc>http://portfolio.neverlandstudio.my.id/learning-path</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>http://portfolio.neverlandstudio.my.id/resources</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>http://portfolio.neverlandstudio.my.id/security-glossary</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
 
   <!-- Services — Cyber Security -->
-  <url><loc>https://portfolio.neverlandstudio.my.id/services/cyber-security</loc><changefreq>monthly</changefreq><priority>0.9</priority></url>
-  <url><loc>https://portfolio.neverlandstudio.my.id/services/penetration-testing</loc><changefreq>monthly</changefreq><priority>0.9</priority></url>
-  <url><loc>https://portfolio.neverlandstudio.my.id/services/security-audit</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://portfolio.neverlandstudio.my.id/services/network-security</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://portfolio.neverlandstudio.my.id/services/cloud-security</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>http://portfolio.neverlandstudio.my.id/services/cyber-security</loc><changefreq>monthly</changefreq><priority>0.9</priority></url>
+  <url><loc>http://portfolio.neverlandstudio.my.id/services/penetration-testing</loc><changefreq>monthly</changefreq><priority>0.9</priority></url>
+  <url><loc>http://portfolio.neverlandstudio.my.id/services/security-audit</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>http://portfolio.neverlandstudio.my.id/services/network-security</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>http://portfolio.neverlandstudio.my.id/services/cloud-security</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
 
   <!-- Services — Web Development -->
-  <url><loc>https://portfolio.neverlandstudio.my.id/services/web-development</loc><changefreq>monthly</changefreq><priority>0.9</priority></url>
-  <url><loc>https://portfolio.neverlandstudio.my.id/services/custom-web-apps</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://portfolio.neverlandstudio.my.id/services/ecommerce</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://portfolio.neverlandstudio.my.id/services/pwa</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://portfolio.neverlandstudio.my.id/services/api-development</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://portfolio.neverlandstudio.my.id/services/ui-ux-design</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>http://portfolio.neverlandstudio.my.id/services/web-development</loc><changefreq>monthly</changefreq><priority>0.9</priority></url>
+  <url><loc>http://portfolio.neverlandstudio.my.id/services/custom-web-apps</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>http://portfolio.neverlandstudio.my.id/services/ecommerce</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>http://portfolio.neverlandstudio.my.id/services/pwa</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>http://portfolio.neverlandstudio.my.id/services/api-development</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>http://portfolio.neverlandstudio.my.id/services/ui-ux-design</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
 
   <!-- Services — Cloud Solutions -->
-  <url><loc>https://portfolio.neverlandstudio.my.id/services/cloud-solutions</loc><changefreq>monthly</changefreq><priority>0.9</priority></url>
-  <url><loc>https://portfolio.neverlandstudio.my.id/services/cloud-migration</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://portfolio.neverlandstudio.my.id/services/infrastructure-as-code</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://portfolio.neverlandstudio.my.id/services/cloud-security-solutions</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://portfolio.neverlandstudio.my.id/services/cost-optimization</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://portfolio.neverlandstudio.my.id/services/managed-services</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>http://portfolio.neverlandstudio.my.id/services/cloud-solutions</loc><changefreq>monthly</changefreq><priority>0.9</priority></url>
+  <url><loc>http://portfolio.neverlandstudio.my.id/services/cloud-migration</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>http://portfolio.neverlandstudio.my.id/services/infrastructure-as-code</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>http://portfolio.neverlandstudio.my.id/services/cloud-security-solutions</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>http://portfolio.neverlandstudio.my.id/services/cost-optimization</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>http://portfolio.neverlandstudio.my.id/services/managed-services</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
 
   <!-- Services — Consulting -->
-  <url><loc>https://portfolio.neverlandstudio.my.id/services/consulting</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://portfolio.neverlandstudio.my.id/services/it-strategy-planning</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://portfolio.neverlandstudio.my.id/services/technology-assessment</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://portfolio.neverlandstudio.my.id/services/digital-transformation</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://portfolio.neverlandstudio.my.id/services/it-governance</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://portfolio.neverlandstudio.my.id/services/vendor-management</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>http://portfolio.neverlandstudio.my.id/services/consulting</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>http://portfolio.neverlandstudio.my.id/services/it-strategy-planning</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>http://portfolio.neverlandstudio.my.id/services/technology-assessment</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>http://portfolio.neverlandstudio.my.id/services/digital-transformation</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>http://portfolio.neverlandstudio.my.id/services/it-governance</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>http://portfolio.neverlandstudio.my.id/services/vendor-management</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
 
   <!-- Services — IT Infrastructure -->
-  <url><loc>https://portfolio.neverlandstudio.my.id/services/it-infrastructure</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://portfolio.neverlandstudio.my.id/services/server-management</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://portfolio.neverlandstudio.my.id/services/network-infrastructure</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://portfolio.neverlandstudio.my.id/services/storage-solutions</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://portfolio.neverlandstudio.my.id/services/virtualization</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://portfolio.neverlandstudio.my.id/services/monitoring-maintenance</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>http://portfolio.neverlandstudio.my.id/services/it-infrastructure</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>http://portfolio.neverlandstudio.my.id/services/server-management</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>http://portfolio.neverlandstudio.my.id/services/network-infrastructure</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>http://portfolio.neverlandstudio.my.id/services/storage-solutions</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>http://portfolio.neverlandstudio.my.id/services/virtualization</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>http://portfolio.neverlandstudio.my.id/services/monitoring-maintenance</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
 
   <!-- Company -->
-  <url><loc>https://portfolio.neverlandstudio.my.id/company/values-culture</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://portfolio.neverlandstudio.my.id/company/csr</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
-  <url><loc>https://portfolio.neverlandstudio.my.id/company/partner-program</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>http://portfolio.neverlandstudio.my.id/company/values-culture</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>http://portfolio.neverlandstudio.my.id/company/csr</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>http://portfolio.neverlandstudio.my.id/company/partner-program</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
 </urlset>

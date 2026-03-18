@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { CheckCircle, ArrowRight, Briefcase, TrendingUp } from 'lucide-react';
 import Button from '@components/atoms/Button';
+import { AnimatedCounter } from '@components/atoms/AnimatedCounter';
 import SectionTitle from '@components/molecules/SectionTitle';
 import { PROJECTS_DATA } from '@config/projects';
 import { Routes } from '@config/constants';
@@ -46,10 +47,10 @@ export default function Projects() {
           viewport={{ once: true }}
         >
           {[
-            { value: '500+', label: 'Projects Delivered' },
-            { value: '98%', label: 'Client Satisfaction' },
-            { value: '25+', label: 'Countries Served' },
-            { value: '10+', label: 'Years Experience' },
+            { value: 500, suffix: '+', label: 'Projects Delivered' },
+            { value: 98, suffix: '%', label: 'Client Satisfaction' },
+            { value: 25, suffix: '+', label: 'Countries Served' },
+            { value: 10, suffix: '+', label: 'Years Experience' },
           ].map((stat, idx) => (
             <motion.div
               key={idx}
@@ -59,7 +60,12 @@ export default function Projects() {
             >
               <div className="absolute top-0 right-0 w-16 h-16 bg-red-500/5 rounded-full blur-xl group-hover:bg-red-500/10 transition-colors pointer-events-none" />
               <div className="text-3xl font-black text-white mb-2 tracking-tight group-hover:text-red-400 transition-colors">
-                {stat.value}
+                <AnimatedCounter
+                  end={stat.value}
+                  suffix={stat.suffix}
+                  duration={2500}
+                  decimals={0}
+                />
               </div>
               <div className="text-xs text-slate-500 font-bold uppercase tracking-widest font-mono">
                 {stat.label}

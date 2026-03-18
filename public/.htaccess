@@ -1,0 +1,35 @@
+# ==========================================
+# Minimal Setup - Debug Mode
+# ==========================================
+
+# Prevent directory listing
+Options -Indexes
+
+# Set proper Content-Type untuk Sitemap & Robots
+AddType application/xml .xml
+AddType text/plain .txt
+
+# ==========================================
+# URL Rewriting (untuk SPA/React Router)
+# ==========================================
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+  
+  # Jangan rewrite untuk file dan folder yang ada
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+  
+  # Exclude static files dan special files
+  RewriteCond %{REQUEST_URI} \.(js|css|map|xml|txt|ico|png|jpg|jpeg|gif|svg|webp|woff|woff2|ttf|eot|otf)$ [NC]
+  RewriteRule ^ - [L]
+  
+  # Exclude sitemap, robots, googleXXX.html yang juga sebagai file actual
+  RewriteCond %{REQUEST_URI} (sitemap|robots|google[a-z0-9]+\.html|\.well-known) [NC]
+  RewriteRule ^ - [L]
+  
+  # Arahkan ke index.html untuk route SPA
+  RewriteRule ^(.*)$ index.html [QSA,L]
+</IfModule>

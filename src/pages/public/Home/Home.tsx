@@ -16,6 +16,7 @@ import { Link } from "react-router-dom";
 import HeroSection from "@components/organisms/HeroSection";
 import ServiceCard from "@components/molecules/ServiceCard";
 import Button from "@components/atoms/Button";
+import { AnimatedCounter } from "@components/atoms/AnimatedCounter";
 import {
   Routes,
   SERVICES_DATA,
@@ -90,12 +91,18 @@ export default function Home() {
               {/* Stats Row */}
               <div className="grid grid-cols-3 gap-3 mb-8">
                 {[
-                  { value: "10+", label: "Years", color: "text-red-500" },
-                  { value: "500+", label: "Projects", color: "text-red-500" },
-                  { value: "99.9%", label: "Uptime", color: "text-red-500" },
+                  { value: 10, suffix: "+", label: "Years", color: "text-red-500" },
+                  { value: 500, suffix: "+", label: "Projects", color: "text-red-500" },
+                  { value: 99.9, suffix: "%", label: "Uptime", color: "text-red-500", decimals: 1 },
                 ].map((stat, i) => (
                   <div key={i} className="p-4 text-center rounded-sm bg-[#0f172a] border border-white/5 hover:border-red-500/50 transition-colors duration-300">
-                    <p className={`text-2xl font-black ${stat.color} font-mono`}>{stat.value}</p>
+                    <AnimatedCounter
+                      end={stat.value}
+                      suffix={stat.suffix}
+                      duration={2500}
+                      className={`text-2xl font-black ${stat.color} font-mono`}
+                      decimals={stat.decimals || 0}
+                    />
                     <p className="text-[11px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">{stat.label}</p>
                   </div>
                 ))}

@@ -14,6 +14,7 @@ class DatabaseSeeder extends Seeder
             ServiceSeeder::class,
             ProjectSeeder::class,
             BlogPostSeeder::class,
+            CTFChallengesSeeder::class,
         ]);
     }
 }
