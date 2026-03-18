@@ -25,7 +25,6 @@ return new class extends Migration
             $table->index(['user_id', 'challenge_id']);
             $table->index(['user_id', 'created_at']); // For rate limiting
             $table->index(['ip_address']);
-            $table->index(['status']);
         });
     }
 

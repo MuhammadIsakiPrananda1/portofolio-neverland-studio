@@ -301,50 +301,6 @@ class ChallengeController extends Controller
             ], 500);
         }
     }
-            'status'         => $isCorrect ? 'correct' : 'wrong',
-            'ip_address'     => $ipAddress,
-            'user_agent'     => $request->userAgent(),
-        ]);
-
-        if ($isCorrect) {
-            return DB::transaction(function () use ($user, $challenge, $userId) {
-                $points = $challenge->getCurrentPoints();
-
-                // First blood
-                $isFirstBlood = false;
-                if (!$challenge->first_blood_user_id) {
-                    $challenge->update([
-                        'first_blood_user_id' => $userId,
-                        'first_blood_at'      => now(),
-                    ]);
-                    $isFirstBlood = true;
-                    $points += intval($challenge->initial_points * 0.1);
-                }
-
-                ChallengeSolve::markAsSolved($userId, $challenge->id, $points);
-                $challenge->increment('solve_count');
-                $user->increment('score', $points);
-
-                Cache::forget("scoreboard:all");
-                Cache::forget("user:score:{$userId}");
-                Cache::forget("challenges:list::");
-                Cache::forget("user:solved:{$userId}");
-
-                return response()->json([
-                    'status'      => 'correct',
-                    'message'     => 'Challenge solved! Points awarded.',
-                    'points'      => $points,
-                    'first_blood' => $isFirstBlood,
-                    'total_score' => $user->score + $points,
-                ], 200);
-            });
-        }
-
-        return response()->json([
-            'status'  => 'incorrect',
-            'message' => 'Incorrect flag. Try again!',
-        ], 200);
-    }
 
     /**
      * Get user's solved challenges

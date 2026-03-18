@@ -64,13 +64,6 @@ return new class extends Migration
             if (!Schema::hasColumn('users', 'two_factor_confirmed_at')) {
                 $table->timestamp('two_factor_confirmed_at')->nullable()->after('two_factor_recovery_codes');
             }
-            
-            // Add indexes for performance
-            if (!Schema::hasIndexes('users', ['email', 'status', 'created_at'])) {
-                $table->index(['email']);
-                $table->index(['status']);
-                $table->index(['created_at']);
-            }
         });
     }
 
